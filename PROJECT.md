@@ -17,7 +17,7 @@ A protocol where users stake cryptocurrency on belief statements to create publi
 
 1. **EAS (Ethereum Attestation Service)** - Attestation layer
    - Immutable belief statements on-chain
-   - Schema: `belief (string), conviction (uint8 0-100), timestamp (uint256)`
+   - Schema: `belief (string), timestamp (uint256)`
    - One attestation per unique belief text
    - Returns attestation UID for reference
 
@@ -101,8 +101,7 @@ $2 stake is 10-20x larger than gas costs - gas not a barrier.
 4. How to incentivize consolidation? (prevent duplicate beliefs)
 5. When to add premium features? (analytics, API access)
 6. Token or no token long-term?
-7. Should conviction scores be updatable after staking? If yes, require additional stake + commentary?
-8. Should individual stakes have optional commentary/reasoning attached?
+7. Should individual stakes have optional commentary/reasoning attached?
 
 ## Testnet Milestone (2 weeks)
 
@@ -153,6 +152,20 @@ PRIVATE_KEY=
 - Contract compiles successfully
 - Next: Write Foundry tests
 
+**Session 2 (January 9, 2025):**
+- Explored naming, decided on believeth.xyz (runner-up: publicbelief.xyz)
+- Removed conviction score from schema - friction kills momentum, stake itself is the confidence signal
+- Clarified core thesis: beliefs are constraint commitments made coordinable through cost
+- Next: Set up Next.js frontend scaffold, write contract tests
+
+**Session 3 (January 9, 2025):**
+- Wrote and passed all Foundry tests for BeliefStake.sol
+- Set up testnet wallet (0x7a77...)
+- Learned critical security lesson: never paste private keys in commands
+- Set up .env file for environment variables
+- Hit confusion with .env variable naming conventions (NEXT_PUBLIC_ vs plain vars)
+- Next: Clarify .env setup, deploy MockUSDC to testnet, then deploy BeliefStake
+
 ## Repository Structure
 ```
 onrecord/
@@ -184,6 +197,6 @@ onrecord/
 
 ---
 
-**Last Updated:** January 05, 2026
+**Last Updated:** January 9, 2025
 **Current Phase:** Development environment ready
 **Next Action:** Write Foundry tests for BeliefStake.sol
