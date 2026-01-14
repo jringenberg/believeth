@@ -51,3 +51,61 @@ export const BELIEF_STAKE_ABI = [
 export const GENESIS_BELIEF_UID =
   '0x52314b57ebbe83ebe00c02aa3a74df3cf1a55acd682318f7d88777945aa5c1dd';
 
+// Full EAS ABI for attest function
+export const EAS_WRITE_ABI = [
+  {
+    inputs: [
+      {
+        components: [
+          { name: 'schema', type: 'bytes32' },
+          {
+            components: [
+              { name: 'recipient', type: 'address' },
+              { name: 'expirationTime', type: 'uint64' },
+              { name: 'revocable', type: 'bool' },
+              { name: 'refUID', type: 'bytes32' },
+              { name: 'data', type: 'bytes' },
+              { name: 'value', type: 'uint256' },
+            ],
+            name: 'data',
+            type: 'tuple',
+          },
+        ],
+        name: 'request',
+        type: 'tuple',
+      },
+    ],
+    name: 'attest',
+    outputs: [{ name: '', type: 'bytes32' }],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+] as const;
+
+// BeliefStake stake function
+export const BELIEF_STAKE_WRITE_ABI = [
+  {
+    inputs: [{ name: 'attestationUID', type: 'bytes32' }],
+    name: 'stake',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+] as const;
+
+// ERC20 approve function
+export const ERC20_ABI = [
+  {
+    inputs: [
+      { name: 'spender', type: 'address' },
+      { name: 'amount', type: 'uint256' },
+    ],
+    name: 'approve',
+    outputs: [{ name: '', type: 'bool' }],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+] as const;
+
+export const STAKE_AMOUNT = 2_000_000n; // $2 USDC (6 decimals)
+
