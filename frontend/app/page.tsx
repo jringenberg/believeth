@@ -11,8 +11,8 @@ import {
   BELIEF_STAKE_ABI,
   BELIEF_STAKE_WRITE_ABI,
   ERC20_ABI,
-  GENESIS_BELIEF_UID,
   STAKE_AMOUNT,
+  GENESIS_BELIEF_UID,
 } from '@/lib/contracts';
 
 export default function Home() {
@@ -26,20 +26,27 @@ export default function Home() {
   const [beliefs, setBeliefs] = useState<
     Array<{ uid: string; text: string; stakers: number }>
   >([]);
+  const statusClass = status.startsWith('✅')
+    ? 'status success'
+    : status.startsWith('❌')
+      ? 'status error'
+      : 'status';
 
   useEffect(() => {
     async function fetchBeliefs() {
       if (!publicClient) return;
 
       try {
+        const currentBlock = await publicClient.getBlockNumber();
+        const fromBlock = currentBlock > 10000n ? currentBlock - 10000n : 0n;
+
         // Get all Staked events from the BeliefStake contract
-        // Start from block where contract was deployed (adjust if needed)
         const stakedEvents = await publicClient.getLogs({
           address: CONTRACTS.BELIEF_STAKE as `0x${string}`,
           event: parseAbiItem(
             'event Staked(bytes32 indexed attestationUID, address indexed staker, uint256 amount, uint256 timestamp)'
           ),
-          fromBlock: 36238181n, // Block where BeliefStake was deployed
+          fromBlock,
           toBlock: 'latest',
         });
 
@@ -52,11 +59,16 @@ export default function Home() {
           ),
         ];
 
-        console.log('Found beliefs with stakes:', uniqueUIDs);
+        const beliefUIDs =
+          uniqueUIDs.length > 0
+            ? uniqueUIDs
+            : [GENESIS_BELIEF_UID as `0x${string}`];
+
+        console.log('Found beliefs with stakes:', beliefUIDs);
 
         // Fetch each belief's data
         const fetchedBeliefs = await Promise.all(
-          uniqueUIDs.map(async (uid) => {
+          beliefUIDs.map(async (uid) => {
             try {
               // Fetch attestation
               const attestation = await publicClient.readContract({
@@ -208,57 +220,93 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen p-8">
-      <div className="max-w-2xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-4xl font-bold">OnRecord</h1>
-          <ConnectButton />
-        </div>
+    <>
+      <div className="wallet-float">
+        <ConnectButton />
+      </div>
+      <main className="page">
+        <header className="page-header">
+          <h1 className="page-title">Popular beliefs</h1>
+        </header>
 
-        {/* Create Form */}
-        {isConnected && (
-          <div className="border border-gray-200 rounded-lg p-6 space-y-4">
-            <h2 className="text-xl font-semibold">Create a Belief</h2>
-            <textarea
-              value={belief}
-              onChange={(e) => setBelief(e.target.value)}
-              placeholder="Enter your belief... (e.g. 'AI will be smarter than humans by 2030')"
-              className="w-full p-3 border border-gray-300 rounded-lg resize-none h-24"
-              maxLength={280}
-              disabled={loading}
-            />
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">{belief.length}/280</span>
-              <button
-                onClick={handleCreateAndStake}
-                disabled={loading || !belief.trim()}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-              >
-                {loading ? status : 'Back This $2'}
-              </button>
-            </div>
-            {status && !loading && <p className="text-sm text-gray-600">{status}</p>}
+        <section className="beliefs">
+          <div className="belief-list">
+            {beliefs.map((b) => (
+              <article key={b.uid} className="belief-row">
+                <div className="belief-core">
+                  <aside className="belief-amount">
+                    <span className="amount-value">${b.stakers * 2}</span>
+                    <span className="amount-label">staked</span>
+                  </aside>
+                  <div className="belief-body">
+                    <p className="belief-text">{b.text}</p>
+                  </div>
+                </div>
+                <button type="button" className="belief-cta" disabled>
+                  + $2
+                </button>
+              </article>
+            ))}
           </div>
+        </section>
+
+        {isConnected && (
+          <section className="compose">
+            <h2 className="section-title">Write your own...</h2>
+            <form
+              className="compose-form"
+              onSubmit={(event) => {
+                event.preventDefault();
+                handleCreateAndStake();
+              }}
+            >
+              <div className="compose-input">
+                <textarea
+                  id="belief-input"
+                  className="compose-textarea"
+                  value={belief}
+                  onChange={(event) => setBelief(event.target.value)}
+                  placeholder="Enter your belief..."
+                  maxLength={280}
+                  disabled={loading}
+                />
+                <button
+                  type="submit"
+                  className="compose-submit"
+                  disabled={loading || !belief.trim()}
+                >
+                  + $2
+                </button>
+              </div>
+              {status && <p className={statusClass}>{status}</p>}
+            </form>
+          </section>
         )}
 
-        {/* Popular Beliefs */}
-        <div className="space-y-4">
-          <h2 className="text-2xl font-semibold">Popular Beliefs</h2>
-          {beliefs.map((b) => (
-            <div
-              key={b.uid}
-              className="border border-gray-200 rounded-lg p-6 space-y-2"
-            >
-              <p className="text-lg">{b.text}</p>
-              <p className="text-sm text-gray-600">
-                <span className="font-semibold">{b.stakers}</span>{' '}
-                {b.stakers === 1 ? 'person' : 'people'} staked $2
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </main>
+        <section className="how-it-works">
+          <h2 className="section-title">How it works</h2>
+          <div className="how-it-works-list">
+            <p className="how-it-works-item">
+              Stake $2 to make a claim. Revoke anytime and get your money back.
+            </p>
+            <p className="how-it-works-item">
+              Cheap talk is for bots and trolls. Beliefs are costly, and even a
+              small, refundable cost proves conviction.
+            </p>
+            <p className="how-it-works-item">
+              Using the blockchain to record beliefs means that they are
+              verifiable, public, tamper proof, provable, and censorship
+              resistant.
+            </p>
+            <p className="how-it-works-item">
+              Beliefs are EAS attestations on Base chain. The gas cost of
+              creating a new belief is about 25¢. Adding your stake to an
+              existing belief costs about 10¢. While staked, beliefs generate
+              yield held by a protocol treasury.
+            </p>
+          </div>
+        </section>
+      </main>
+    </>
   );
 }

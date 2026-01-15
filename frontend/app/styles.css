@@ -1,0 +1,307 @@
+@import url('https://cdn.jsdelivr.net/npm/geist@1.2.1/dist/geist.min.css');
+@import '@rainbow-me/rainbowkit/styles.css';
+
+:root {
+  --font-geist: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+  --font-serif: 'Times New Roman', Times, serif;
+  --paper: #f7f6f6;
+  --ink: #111111;
+  --muted: #6d6d6d;
+  --border: #111111;
+  --accent-yellow: #fff4a6;
+  --accent-green: #c9f6de;
+  --accent-soft: #eeeded;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-geist);
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.page {
+  width: 640px;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 48px 0 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.wallet-float {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 10;
+}
+
+.page-title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.section-title {
+  margin: 0 0 16px 0;
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.belief-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.belief-row {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.belief-core {
+  display: flex;
+  align-items: stretch;
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.belief-amount {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 16px;
+  background: var(--accent-yellow);
+  text-align: center;
+  min-width: 88px;
+}
+
+.amount-value {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.amount-label {
+  font-size: 12px;
+}
+
+.belief-body {
+  background: #000;
+  padding: 16px 20px;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.belief-text {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 24px;
+  line-height: 1.45;
+  color: #fff;
+}
+
+.belief-cta {
+  background: var(--accent-green);
+  padding: 12px 16px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.belief-cta:disabled {
+  cursor: pointer;
+  opacity: 1;
+  color: var(--ink);
+  -webkit-text-fill-color: var(--ink);
+}
+
+.compose {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.compose-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.compose-input {
+  display: flex;
+  align-items: stretch;
+  background: #fff;
+}
+
+.compose-input:focus-within {
+  outline: none;
+}
+
+.compose-textarea {
+  width: 100%;
+  min-height: 84px;
+  resize: vertical;
+  border: 0;
+  padding: 16px;
+  font-family: var(--font-serif);
+  font-size: 16px;
+  background: transparent;
+}
+
+.compose-textarea:focus {
+  outline: none;
+}
+
+.compose-submit {
+  border-left: 0;
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  background: var(--accent-green);
+  padding: 12px 16px;
+  font-family: var(--font-geist);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.compose-submit:disabled {
+  opacity: 1;
+  color: var(--ink);
+  -webkit-text-fill-color: var(--ink);
+}
+
+.status {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.status.success {
+  color: #0f5132;
+}
+
+.status.error {
+  color: #842029;
+}
+
+[data-rk] button {
+  border: 0;
+  background: #fff;
+  font-family: var(--font-geist);
+  font-size: 16px;
+  padding: 12px 16px;
+}
+
+[data-rk] button:hover:not(:disabled) {
+  background: #000;
+  color: #fff;
+}
+
+.how-it-works {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.how-it-works-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.how-it-works-item {
+  margin: 0;
+  background: var(--accent-soft);
+  padding: 16px;
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+@media (max-width: 640px) {
+  body {
+    padding: 0;
+  }
+
+  .wallet-float {
+    position: static;
+    align-self: flex-end;
+    margin: 24px 16px 0;
+  }
+
+  .page {
+    width: 100%;
+    padding: 40px 0;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .belief-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .belief-core {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .belief-amount {
+    order: 1;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .belief-cta {
+    order: 3;
+    width: fit-content;
+  }
+
+  .belief-body {
+    order: 2;
+    padding: 8px 12px;
+    min-height: auto;
+  }
+
+  .compose-input {
+    flex-direction: column;
+  }
+
+  .compose-submit {
+    border-left: 0;
+    border-top: 0;
+  }
+}
+
