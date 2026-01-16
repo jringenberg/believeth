@@ -5,6 +5,7 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
 import { decodeAbiParameters, encodeAbiParameters } from 'viem';
 import { getBeliefs } from '@/lib/subgraph';
+import { ProgressBar } from './ProgressBar';
 import {
   CONTRACTS,
   EAS_ABI,
@@ -22,6 +23,8 @@ export default function Home() {
   const [belief, setBelief] = useState('');
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState('');
+  const [progress, setProgress] = useState(0);
+  const [progressMessage, setProgressMessage] = useState('');
   const [beliefs, setBeliefs] = useState<
     Array<{
       id: string;
@@ -116,10 +119,11 @@ export default function Home() {
 
     setLoading(true);
     setStatus('');
+    setProgress(10);
+    setProgressMessage('Creating attestation...');
 
     try {
       // Step 1: Create attestation
-      setStatus('Step 1/3: Creating attestation...');
 
       const encodedData = encodeAbiParameters(
         [{ name: 'belief', type: 'string' }],
@@ -147,10 +151,15 @@ export default function Home() {
         ],
       });
 
+      setProgress(20);
+      setProgressMessage('Confirming attestation...');
+      
       const attestReceipt = await publicClient.waitForTransactionReceipt({
         hash: attestTx,
       });
 
+      setProgress(30);
+      
       // Parse attestation UID from the Attested event data
       // The UID is in the data field, not topics
       const attestedLog = attestReceipt.logs[0];
@@ -164,7 +173,8 @@ export default function Home() {
       console.log('Extracted attestation UID:', attestationUID);
 
       // Step 2: Approve USDC
-      setStatus('Step 2/3: Approving USDC...');
+      setProgress(40);
+      setProgressMessage('Approving USDC...');
 
       const approveTx = await walletClient.writeContract({
         address: CONTRACTS.MOCK_USDC as `0x${string}`,
@@ -174,14 +184,16 @@ export default function Home() {
       });
 
       // Wait for 2 block confirmations to ensure approval is settled
-      setStatus('Step 2/3: Waiting for approval confirmation...');
+      setProgress(50);
+      setProgressMessage('Confirming approval...');
       await publicClient.waitForTransactionReceipt({
         hash: approveTx,
         confirmations: 2,
       });
 
       // Step 3: Stake
-      setStatus('Step 3/3: Staking $2...');
+      setProgress(60);
+      setProgressMessage('Staking $2...');
 
       const stakeTx = await walletClient.writeContract({
         address: CONTRACTS.BELIEF_STAKE as `0x${string}`,
@@ -190,19 +202,54 @@ export default function Home() {
         args: [attestationUID],
       });
 
+      setProgress(70);
+      setProgressMessage('Confirming stake...');
       await publicClient.waitForTransactionReceipt({ hash: stakeTx });
 
-      // Success!
-      setStatus('✅ Belief created and staked!');
+      // Poll subgraph for new belief
+      setProgress(90);
+      setProgressMessage('Processing your belief...');
       setBelief('');
 
-      // Reload page to refresh belief list
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
+      // Poll for the new attestation in subgraph
+      const maxAttempts = 20; // 40 seconds max
+      let attempts = 0;
+      let found = false;
+
+      while (attempts < maxAttempts && !found) {
+        await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2s between polls
+        
+        try {
+          const latestBeliefs = await getBeliefs();
+          found = latestBeliefs.some((b) => b.id === attestationUID);
+          
+          if (found) {
+            setProgress(100);
+            setProgressMessage('Belief created! Refreshing...');
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+            break;
+          }
+        } catch (error) {
+          console.error('Error polling subgraph:', error);
+        }
+        
+        attempts++;
+        // Gradually increase progress from 90 to 99
+        const progressIncrement = (99 - 90) / maxAttempts;
+        setProgress(90 + progressIncrement * attempts);
+      }
+
+      if (!found) {
+        setProgress(99);
+        setProgressMessage('Almost there - refresh to see your belief');
+      }
     } catch (error: any) {
       console.error('Error:', error);
-      setStatus(`❌ Error: ${error.message || 'Transaction failed'}`);
+      setStatus(`❌ ${error.message || 'Transaction failed'}`);
+      setProgress(0);
+      setProgressMessage('');
     } finally {
       setLoading(false);
     }
@@ -285,7 +332,10 @@ export default function Home() {
                   + $2
                 </button>
               </div>
-              {status && <p className={statusClass}>{status}</p>}
+              {loading && progress > 0 && (
+                <ProgressBar progress={progress} message={progressMessage} />
+              )}
+              {!loading && status && <p className={statusClass}>{status}</p>}
             </form>
           </section>
         )}
