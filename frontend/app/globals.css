@@ -1,1 +1,19 @@
-@import './styles.css';
+/* RainbowKit base styles */
+@import '@rainbow-me/rainbowkit/styles.css';
+
+/* Modern CSS reset */
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* Ensure RainbowKit modals work properly */
+#__next {
+  isolation: isolate;
+}

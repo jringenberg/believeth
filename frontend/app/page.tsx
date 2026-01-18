@@ -33,20 +33,13 @@ export default function Home() {
       createdAt: string;
     }>
   >([]);
-  const [visibleCount, setVisibleCount] = useState(5);
   const [beliefTexts, setBeliefTexts] = useState<Record<string, string>>({});
-  const statusClass = status.startsWith('✅')
-    ? 'status success'
-    : status.startsWith('❌')
-      ? 'status error'
-      : 'status';
 
   useEffect(() => {
     async function fetchBeliefs() {
       try {
         const fetchedBeliefs = await getBeliefs();
         setBeliefs(fetchedBeliefs);
-        setVisibleCount(fetchedBeliefs.length);
       } catch (error) {
         console.error('Error fetching beliefs:', error);
       }
@@ -124,7 +117,6 @@ export default function Home() {
 
     try {
       // Step 1: Create attestation
-
       const encodedData = encodeAbiParameters(
         [{ name: 'belief', type: 'string' }],
         [belief]
@@ -153,15 +145,14 @@ export default function Home() {
 
       setProgress(20);
       setProgressMessage('Confirming attestation...');
-      
+
       const attestReceipt = await publicClient.waitForTransactionReceipt({
         hash: attestTx,
       });
 
       setProgress(30);
-      
+
       // Parse attestation UID from the Attested event data
-      // The UID is in the data field, not topics
       const attestedLog = attestReceipt.logs[0];
       const decodedUid = decodeAbiParameters(
         [{ name: 'uid', type: 'bytes32' }],
@@ -169,8 +160,6 @@ export default function Home() {
       );
       const attestationUID = decodedUid[0];
       if (!attestationUID) throw new Error('Failed to get attestation UID');
-
-      console.log('Extracted attestation UID:', attestationUID);
 
       // Step 2: Approve USDC
       setProgress(40);
@@ -183,7 +172,6 @@ export default function Home() {
         args: [CONTRACTS.BELIEF_STAKE as `0x${string}`, STAKE_AMOUNT],
       });
 
-      // Wait for 2 block confirmations to ensure approval is settled
       setProgress(50);
       setProgressMessage('Confirming approval...');
       await publicClient.waitForTransactionReceipt({
@@ -212,17 +200,17 @@ export default function Home() {
       setBelief('');
 
       // Poll for the new attestation in subgraph
-      const maxAttempts = 20; // 40 seconds max
+      const maxAttempts = 20;
       let attempts = 0;
       let found = false;
 
       while (attempts < maxAttempts && !found) {
-        await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2s between polls
-        
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
         try {
           const latestBeliefs = await getBeliefs();
           found = latestBeliefs.some((b) => b.id === attestationUID);
-          
+
           if (found) {
             setProgress(100);
             setProgressMessage('Belief created! Refreshing...');
@@ -234,9 +222,8 @@ export default function Home() {
         } catch (error) {
           console.error('Error polling subgraph:', error);
         }
-        
+
         attempts++;
-        // Gradually increase progress from 90 to 99
         const progressIncrement = (99 - 90) / maxAttempts;
         setProgress(90 + progressIncrement * attempts);
       }
@@ -245,9 +232,10 @@ export default function Home() {
         setProgress(99);
         setProgressMessage('Almost there - refresh to see your belief');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error:', error);
-      setStatus(`❌ ${error.message || 'Transaction failed'}`);
+      const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
+      setStatus(`❌ ${errorMessage}`);
       setProgress(0);
       setProgressMessage('');
     } finally {
@@ -256,114 +244,109 @@ export default function Home() {
   }
 
   return (
-    <>
-      <div className="wallet-float">
-        <ConnectButton />
+    <div className="page">
+      <div className="wallet-button">
+        <ConnectButton label="Connect" />
       </div>
-      <main className="page">
-        <header className="page-header">
-          <h1 className="page-title">Popular Beliefs</h1>
-        </header>
 
-        <section className="beliefs">
-          <div className="belief-list">
-            {beliefs.slice(0, visibleCount).map((belief) => {
-              const totalStaked = BigInt(belief.totalStaked || '0');
-              const dollars = Number(totalStaked) / 1_000_000;
-              const dollarsLabel = `$${Math.floor(dollars)}`;
-              const text =
-                beliefTexts[belief.id] || '[Test stake - no belief text]';
+      <header className="header">
+        <h2 className="header-title">
+          Costly Signals
+          <br />
+          Prove Conviction
+        </h2>
+      </header>
 
-              return (
-                <article key={belief.id} className="belief-row">
-                  <div className="belief-core">
-                    <aside className="belief-amount">
-                      <span className="amount-value">{dollarsLabel}</span>
-                      <span className="amount-label">staked</span>
-                    </aside>
-                    <div className="belief-body">
-                      <p className="belief-text">{text}</p>
-                    </div>
-                  </div>
-                  <button type="button" className="belief-cta" disabled>
-                    + $2
-                  </button>
-                </article>
-              );
-            })}
-          </div>
-          <div className="beliefs-more">
-            <button
-              type="button"
-              className="load-more"
-              onClick={() => setVisibleCount((count) => count + 5)}
-              disabled={beliefs.length <= visibleCount}
-            >
-              Load more
+      <main className="main">
+        {!isConnected ? (
+          <section className="hero">
+            <h2 className="hero-title">$2 says you mean it</h2>
+
+            <div className="hero-input">
+              <textarea
+                className="belief-textarea"
+                placeholder="..."
+                maxLength={280}
+                disabled
+              />
+            </div>
+
+            <button className="btn btn-primary" disabled>
+              Publish and Stake $2
             </button>
-          </div>
-        </section>
 
-        {isConnected && (
+            <div className="hero-info">
+              <p>If you change your mind, unstake and get your money back.</p>
+            </div>
+          </section>
+        ) : (
           <section className="compose">
-            <h2 className="section-title">Write your own...</h2>
+            <h2 className="compose-title">$2 says you mean it</h2>
+
             <form
-              className="compose-form"
-              onSubmit={(event) => {
-                event.preventDefault();
+              onSubmit={(e) => {
+                e.preventDefault();
                 handleCreateAndStake();
               }}
             >
               <div className="compose-input">
                 <textarea
-                  id="belief-input"
-                  className="compose-textarea"
+                  className="belief-textarea"
                   value={belief}
-                  onChange={(event) => setBelief(event.target.value)}
-                  placeholder="Enter your belief..."
+                  onChange={(e) => setBelief(e.target.value)}
+                  placeholder="..."
                   maxLength={280}
                   disabled={loading}
                 />
-                <button
-                  type="submit"
-                  className="compose-submit"
-                  disabled={loading || !belief.trim()}
-                >
-                  + $2
-                </button>
               </div>
+
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={loading || !belief.trim()}
+              >
+                Publish and Stake $2
+              </button>
+
               {loading && progress > 0 && (
                 <ProgressBar progress={progress} message={progressMessage} />
               )}
-              {!loading && status && <p className={statusClass}>{status}</p>}
+              {!loading && status && <p className="status">{status}</p>}
             </form>
+
+            <div className="compose-info">
+              <p>If you change your mind, unstake and get your money back.</p>
+            </div>
           </section>
         )}
 
-        <section className="how-it-works">
-          <h2 className="section-title">How it works</h2>
-          <div className="how-it-works-list">
-            <p className="how-it-works-item">
-              Stake $2 to make a claim. Revoke anytime and get your money back.
-            </p>
-            <p className="how-it-works-item">
-              Cheap talk is for bots and trolls. Beliefs are costly, and even a
-              small, refundable cost proves conviction.
-            </p>
-            <p className="how-it-works-item">
-              Using the blockchain to record beliefs means that they are
-              verifiable, public, tamper proof, provable, and censorship
-              resistant.
-            </p>
-            <p className="how-it-works-item">
-              Beliefs are EAS attestations on Base chain. The gas cost of
-              creating a new belief is about 25¢. Adding your stake to an
-              existing belief costs about 10¢. While staked, beliefs generate
-              yield held by a protocol treasury.
-            </p>
-          </div>
+        <section className="beliefs">
+          <h2 className="header-title">Popular Beliefs</h2>
+
+          <ul className="beliefs-list">
+            {beliefs.map((beliefItem) => {
+              const totalStaked = BigInt(beliefItem.totalStaked || '0');
+              const dollars = Number(totalStaked) / 1_000_000;
+              const text =
+                beliefTexts[beliefItem.id] || '[Test stake - no belief text]';
+
+              return (
+                <li key={beliefItem.id} className="belief-card">
+                  <div className="belief-badge">
+                    <span className="badge-amount">${Math.floor(dollars)}</span>
+                    <span className="badge-label">Staked</span>
+                  </div>
+                  <div className="belief-text">{text}</div>
+                  <button className="btn btn-stake" disabled>
+                    <span className="stake-label">Stake</span>
+                    <span className="stake-amount">$2</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
         </section>
       </main>
-    </>
+    </div>
   );
 }

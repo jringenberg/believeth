@@ -1,343 +1,381 @@
-@import url('https://cdn.jsdelivr.net/npm/geist@1.2.1/dist/geist.min.css');
-@import '@rainbow-me/rainbowkit/styles.css';
+/* 
+  Typography System
+  ─────────────────
+  1. 1rem (16px) Times New Roman, all caps, 8% letter spacing
+  2. 1.5rem (24px) Times New Roman, 1.875rem (30px) line height
+  3. 0.875rem (14px) Helvetica, all caps
+  4. 0.5625rem (9px) Helvetica, all caps, 8% letter spacing
+*/
 
-:root {
-  --font-geist: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    sans-serif;
-  --font-serif: 'Times New Roman', Times, serif;
-  --paper: #f7f6f6;
-  --ink: #111111;
-  --muted: #6d6d6d;
-  --border: #111111;
-  --accent-yellow: #fff4a6;
-  --accent-green: #c9f6de;
-  --accent-soft: #eeeded;
-}
-
-* {
+/* Reset */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
+/* Base */
 body {
-  margin: 0;
-  font-family: var(--font-geist);
-  color: var(--ink);
-  background: var(--paper);
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #000;
+  background: #fff;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
 }
 
+button {
+  font-family: Helvetica, Arial, sans-serif;
+  border: none;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+textarea {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: inherit;
+}
+
+ul {
+  list-style: none;
+}
+
+/* Typography Classes */
+.t-heading {
+  /* Style 1: 16px TNR, all caps, 8% letter spacing */
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1rem;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.3;
+}
+
+.t-title {
+  /* Style 2: 24px TNR, 30px line height */
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.5rem;
+  line-height: 1.875rem;
+  font-weight: normal;
+}
+
+.t-button {
+  /* Style 3: 14px Helvetica, all caps */
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 0.875rem;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.t-label {
+  /* Style 4: 9px Helvetica, all caps, 8% letter spacing */
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 0.5625rem;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Layout */
 .page {
-  width: 640px;
-  max-width: 100%;
+  max-width: 44rem;
   margin: 0 auto;
-  padding: 48px 0 56px;
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
+  padding: 0 1.25rem;
+  position: relative;
 }
 
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.wallet-float {
-  position: fixed;
-  top: 24px;
-  right: 24px;
+.wallet-button {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
   z-index: 10;
 }
 
-.page-title {
-  margin: 0;
-  font-family: var(--font-serif);
-  font-size: 32px;
-  font-weight: 400;
-  letter-spacing: 0;
-}
-
-.section-title {
-  margin: 0 0 16px 0;
-  font-family: var(--font-serif);
-  font-size: 24px;
-  font-weight: 500;
-}
-
-.belief-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.beliefs-more {
-  display: flex;
-  justify-content: center;
-  margin-top: 16px;
-}
-
-.load-more {
-  border: 1px solid var(--border);
-  background: var(--accent-soft);
-  border-radius: 999px;
-  padding: 10px 18px;
-  font-family: var(--font-geist);
-  font-size: 15px;
-  cursor: pointer;
-}
-
-.belief-row {
-  display: flex;
-  align-items: stretch;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.belief-core {
-  display: flex;
-  align-items: stretch;
-  flex: 1 1 320px;
-  min-width: 0;
-}
-
-.belief-amount {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 4px;
-  padding: 12px 16px;
-  background: var(--accent-yellow);
+.header {
+  padding-top: 5rem;
   text-align: center;
-  min-width: 88px;
 }
 
-.amount-value {
-  font-size: 20px;
-  font-weight: 600;
+.header-title {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1rem;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.3;
 }
 
-.amount-label {
-  font-size: 12px;
+.main {
+  margin-top: 3rem;
 }
 
-.belief-body {
+/* Hero / Compose Section */
+.hero,
+.compose {
+  max-width: 27.8125rem;
+  margin: 0 auto;
+}
+
+.hero-title,
+.compose-title {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.5rem;
+  line-height: 1.875rem;
+  font-weight: normal;
+  margin-bottom: 1.5rem;
+}
+
+.hero-input,
+.compose-input {
+  margin-bottom: 1rem;
+}
+
+.belief-textarea {
+  width: 100%;
+  height: 5.875rem;
+  padding: 1rem;
   background: #000;
-  padding: 16px 20px;
-  min-height: 48px;
+  color: #fff;
+  border: none;
+  resize: none;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.5rem;
+  line-height: 1.875rem;
+  cursor: text;
+}
+
+.belief-textarea:focus {
+  outline: none;
+  background: #000;
+}
+
+.belief-textarea::placeholder {
+  color: #666;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.5rem;
+  line-height: 1.875rem;
+}
+
+.belief-textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Buttons */
+.btn {
+  display: block;
+  width: 100%;
+  height: 2.625rem;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 0.875rem;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 1.125rem;
+  transition: opacity 0.2s;
+}
+
+.btn:not(:disabled):hover {
+  opacity: 0.9;
+}
+
+.btn-primary {
+  background: #cdffc7;
+  color: #000;
+}
+
+.btn-stake {
+  width: 3.375rem;
+  height: 3.375rem;
+  flex-shrink: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  flex: 1;
+  justify-content: center;
+  background: #cdffc7;
+  color: #000;
+  text-align: center;
+}
+
+.stake-label {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 0.5625rem;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.stake-amount {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 1rem;
+  font-weight: normal;
+  line-height: 1;
+}
+
+/* Hero / Compose Info */
+.hero-info,
+.compose-info {
+  margin-top: 1.5rem;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.5rem;
+  line-height: 1.875rem;
+}
+
+.hero-info p,
+.compose-info p {
+  margin-bottom: 1rem;
+}
+
+.hero-info p:last-child,
+.compose-info p:last-child {
+  margin-bottom: 0;
+}
+
+/* Wallet Button - Upper Right */
+.wallet-button button {
+  background: #d2ebff !important;
+  color: #000 !important;
+  border-radius: 1.125rem !important;
+  font-family: Helvetica, Arial, sans-serif !important;
+  font-size: 0.875rem !important;
+  font-weight: normal !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 1.5rem !important;
+  height: 2.625rem !important;
+}
+
+/* Status and Progress */
+.status {
+  margin-top: 1rem;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+/* Beliefs Section */
+.beliefs {
+  max-width: 36.25rem;
+  /* 54 + 16 + 440 + 16 + 54 = 580px = 36.25rem */
+  margin: 4rem auto 0;
+}
+
+.beliefs .header-title {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.beliefs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Belief Card */
+.belief-card {
+  display: grid;
+  grid-template-columns: 3.375rem 1rem 27.5rem 1rem 3.375rem;
+  /* 54px badge | 16px gap | 440px card | 16px gap | 54px button */
+  align-items: start;
+  width: 100%;
+  min-height: 5.125rem;
+  gap: 0;
+}
+
+.belief-badge {
+  grid-column: 1;
+  width: 3.375rem;
+  height: 3.375rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  background: #fffaa3;
+  color: #000;
+  text-align: center;
+  border-radius: 0.25rem;
+}
+
+.badge-amount {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 1rem;
+  font-weight: normal;
+  line-height: 1;
+}
+
+.badge-label {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 0.5625rem;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  margin-top: 0.25rem;
 }
 
 .belief-text {
-  margin: 0;
-  font-family: var(--font-serif);
-  font-size: 24px;
-  line-height: 1.45;
+  grid-column: 3;
+  padding: 1rem 1rem 1.2rem 1rem;
+  background: #000;
   color: #fff;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.5rem;
+  line-height: 1.875rem;
 }
 
-.belief-cta {
-  background: var(--accent-green);
-  padding: 12px 16px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
+.btn-stake {
+  grid-column: 5;
+  width: 3.375rem;
+  height: 3.375rem;
 }
 
-.belief-cta:disabled {
-  cursor: pointer;
-  opacity: 1;
-  color: var(--ink);
-  -webkit-text-fill-color: var(--ink);
-}
-
-.compose {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.compose-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.compose-input {
-  display: flex;
-  align-items: stretch;
-  background: #fff;
-}
-
-.compose-input:focus-within {
-  outline: none;
-}
-
-.compose-textarea {
-  width: 100%;
-  min-height: 84px;
-  resize: vertical;
-  border: 0;
-  padding: 16px;
-  font-family: var(--font-serif);
-  font-size: 16px;
-  background: transparent;
-}
-
-.compose-textarea:focus {
-  outline: none;
-}
-
-.compose-submit {
-  border-left: 0;
-  border-top: 0;
-  border-right: 0;
-  border-bottom: 0;
-  background: var(--accent-green);
-  padding: 12px 16px;
-  font-family: var(--font-geist);
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  min-width: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.compose-submit:disabled {
-  opacity: 1;
-  color: var(--ink);
-  -webkit-text-fill-color: var(--ink);
-}
-
-.status {
-  margin: 0;
-  font-size: 14px;
-  color: var(--muted);
-}
-
-.status.success {
-  color: #0f5132;
-}
-
-.status.error {
-  color: #842029;
-}
-
-.progress-container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-}
-
-.progress-bar-bg {
-  width: 100%;
-  height: 8px;
-  background: var(--accent-soft);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.progress-bar-fill {
-  height: 100%;
-  background: var(--ink);
-  border-radius: 999px;
-  transition: width 0.3s ease;
-}
-
-.progress-message {
-  margin: 0;
-  font-size: 15px;
-  color: var(--ink);
-  text-align: center;
-}
-
-.how-it-works {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.how-it-works-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.how-it-works-item {
-  margin: 0;
-  background: var(--accent-soft);
-  padding: 16px;
-  font-family: var(--font-serif);
-  font-size: 16px;
-  line-height: 1.4;
-}
-
-@media (max-width: 640px) {
-  body {
-    padding: 0;
-  }
-
-  .wallet-float {
-    position: static;
-    align-self: flex-end;
-    margin: 24px 16px 0;
-  }
-
+/* Responsive */
+@media (max-width: 44rem) {
   .page {
-    width: 100%;
-    padding: 40px 0;
+    padding: 0 1rem;
   }
 
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
+  .hero,
+  .compose,
+  .beliefs {
+    max-width: 100%;
   }
 
-  .belief-row {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .belief-core {
-    width: 100%;
-    flex-direction: column;
-    flex: 0 0 auto;
-  }
-
-  .belief-amount {
-    order: 1;
-    align-items: flex-start;
-    text-align: left;
-  }
-
-  .belief-cta {
-    order: 3;
-    width: fit-content;
-  }
-
-  .belief-body {
-    order: 2;
-    padding: 8px 12px;
-    min-height: auto;
-    flex: 0 0 auto;
-    align-items: flex-start;
-    display: block;
-  }
-
-  .compose-input {
-    flex-direction: column;
-  }
-
-  .compose-submit {
-    border-left: 0;
-    border-top: 0;
+  .belief-textarea,
+  .btn {
+    max-width: 100%;
   }
 }
 
+@media (max-width: 30rem) {
+  .header-title {
+    font-size: 0.875rem;
+  }
+
+  .hero-title,
+  .compose-title {
+    font-size: 1.25rem;
+    line-height: 1.5rem;
+  }
+
+  .belief-card {
+    grid-template-columns: 3.375rem 0.5rem 1fr 0.5rem 3.375rem;
+    /* Smaller gaps on mobile */
+    min-height: 5.125rem;
+  }
+}

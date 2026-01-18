@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import './styles.css';
 import { Providers } from './providers';
 import Script from 'next/script';
 
