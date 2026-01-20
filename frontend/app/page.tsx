@@ -12,7 +12,9 @@ import {
   EAS_WRITE_ABI,
   BELIEF_STAKE_WRITE_ABI,
   ERC20_ABI,
+  MOCK_USDC_ABI,
   STAKE_AMOUNT,
+  MINT_AMOUNT,
 } from '@/lib/contracts';
 
 export default function Home() {
@@ -125,6 +127,26 @@ export default function Home() {
 
     fetchBeliefTexts();
   }, [beliefs, beliefTexts, publicClient]);
+
+  async function handleMint() {
+    if (!walletClient || !address) return;
+
+    try {
+      const mintTx = await walletClient.writeContract({
+        address: CONTRACTS.MOCK_USDC as `0x${string}`,
+        abi: MOCK_USDC_ABI,
+        functionName: 'mint',
+        args: [address, MINT_AMOUNT],
+      });
+
+      await publicClient?.waitForTransactionReceipt({ hash: mintTx });
+      
+      // Success - could add a toast notification here
+      console.log('Minted 20 MockUSDC!');
+    } catch (error: unknown) {
+      console.error('Mint error:', error);
+    }
+  }
 
   async function handleCreateAndStake() {
     if (!walletClient || !publicClient || !address) return;
@@ -268,47 +290,68 @@ export default function Home() {
 
   return (
     <>
-      <header className="sticky-header">
-        <button className="dollar-button" disabled>
-          $
-        </button>
-        <div className="wallet-button">
-          <ConnectButton label="Connect Wallet" />
-        </div>
-      </header>
+      <ConnectButton.Custom>
+        {({ openConnectModal }) => (
+          <>
+            <header className="sticky-header">
+              <button 
+                className="dollar-button" 
+                onClick={() => {
+                  if (!isConnected) {
+                    openConnectModal();
+                  } else {
+                    handleMint();
+                  }
+                }}
+                title={isConnected ? "Mint 20 MockUSDC for testing" : "Connect wallet"}
+              >
+                $
+              </button>
+              <div className="wallet-button">
+                <ConnectButton 
+                  label="Connect Wallet"
+                  showBalance={false}
+                  chainStatus="icon"
+                  accountStatus="address"
+                />
+              </div>
+            </header>
 
-      <div className="page">
-        <main className="main">
-        {!isConnected ? (
-          <section className="hero">
-            <h2 className="hero-title">
-              $2 says you mean it. The fact that it costs money to make a claim
-              shows that it has value and you&apos;re not just yapping. You have
-              conviction.
-            </h2>
+            <div className="page">
+              <main className="main">
+              {!isConnected ? (
+                <section className="hero">
+                  <h2 className="hero-title">
+                    $2 says you mean it. The fact that it costs money to make a claim
+                    shows that it has value and you&apos;re not just yapping. You have
+                    conviction.
+                  </h2>
 
-            <div className="hero-input">
-              <textarea
-                className="belief-textarea"
-                placeholder="about..."
-                maxLength={280}
-                disabled
-              />
-            </div>
+                  <div className="hero-input">
+                    <textarea
+                      className="belief-textarea"
+                      placeholder="about..."
+                      maxLength={280}
+                      disabled
+                    />
+                  </div>
 
-            <button className="btn btn-primary" disabled>
-              Attest and Stake $2
-            </button>
+                  <button 
+                    className="btn btn-primary btn-disabled-style" 
+                    onClick={openConnectModal}
+                  >
+                    Attest and Stake $2
+                  </button>
 
-            <div className="hero-info">
-              <p>
-                If you change your mind, unstake and take your money back.
-                There is no resolution, no reward. Just the fact that you said
-                it onchain, timestamped, verifiable forever.
-              </p>
-            </div>
-          </section>
-        ) : (
+                  <div className="hero-info">
+                    <p>
+                      If you change your mind, unstake and take your money back.
+                      There is no resolution, no reward. Just the fact that you said
+                      it onchain, timestamped, verifiable forever.
+                    </p>
+                  </div>
+                </section>
+              ) : (
           <section className="compose">
             <h2 className="compose-title">
               $2 says you mean it. The fact that it costs money to make a claim
@@ -427,6 +470,9 @@ export default function Home() {
         </section>
       </main>
       </div>
+          </>
+        )}
+      </ConnectButton.Custom>
     </>
   );
 }

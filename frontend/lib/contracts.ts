@@ -107,5 +107,20 @@ export const ERC20_ABI = [
   },
 ] as const;
 
+// MockUSDC mint function
+export const MOCK_USDC_ABI = [
+  {
+    inputs: [
+      { name: 'to', type: 'address' },
+      { name: 'amount', type: 'uint256' },
+    ],
+    name: 'mint',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+] as const;
+
 export const STAKE_AMOUNT = 2_000_000n; // $2 USDC (6 decimals)
+export const MINT_AMOUNT = 20_000_000n; // $20 USDC for testing
 

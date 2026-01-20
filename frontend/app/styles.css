@@ -197,8 +197,10 @@ ul {
   font-weight: normal;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  border: none;
   border-radius: 1.125rem;
   transition: opacity 0.2s;
+  box-shadow: inset 0 0 24px 0 #FFF1BA;
 }
 
 .btn:not(:disabled):hover {
@@ -206,8 +208,15 @@ ul {
 }
 
 .btn-primary {
-  background: #e6d9ff;
+  background: #FFFBEA;
   color: #000;
+}
+
+.btn-disabled-style {
+  background: #E5E5E5 !important;
+  color: #999 !important;
+  cursor: pointer;
+  box-shadow: none !important;
 }
 
 /* Stake button styles defined in belief card section below */
@@ -231,44 +240,8 @@ ul {
   margin-bottom: 0;
 }
 
-/* Wallet Button - Matches primary button style */
-/* Target only the connect button, not the connected state buttons */
-.wallet-button [data-testid="rk-connect-button"] {
-  background: #e6d9ff !important;
-  color: #000 !important;
-  border-radius: 1.125rem !important;
-  font-family: Helvetica, Arial, sans-serif !important;
-  font-size: 0.9rem !important;
-  font-weight: normal !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.05em !important;
-  box-shadow: none !important;
-  border: none !important;
-  padding: 0 1.5rem !important;
-  height: 2.625rem !important;
-}
-
-/* Connected state - target the account button specifically */
-.wallet-button [data-testid="rk-account-button"] {
-  background: #e6d9ff !important;
-  color: #000 !important;
-  border-radius: 1.125rem !important;
-  font-family: Helvetica, Arial, sans-serif !important;
-  font-size: 0.9rem !important;
-  font-weight: normal !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.05em !important;
-  box-shadow: none !important;
-  border: none !important;
-  padding: 0 1rem !important;
-  height: 2.625rem !important;
-}
-
-/* Remove any extra styling from RainbowKit's internal elements */
-.wallet-button button[aria-label] {
-  box-shadow: none !important;
-  border: none !important;
-}
+/* Wallet Button - Using RainbowKit's theme system */
+/* Theme is configured in providers.tsx with custom colors */
 
 /* Status and Progress */
 .status {
