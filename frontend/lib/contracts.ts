@@ -36,12 +36,25 @@ export const EAS_ABI = [
   },
 ] as const;
 
-// BeliefStake ABI - just getStakerCount
+// BeliefStake ABI - read functions
 export const BELIEF_STAKE_ABI = [
   {
     inputs: [{ name: 'attestationUID', type: 'bytes32' }],
     name: 'getStakerCount',
     outputs: [{ name: 'count', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'attestationUID', type: 'bytes32' },
+      { name: 'staker', type: 'address' },
+    ],
+    name: 'getStake',
+    outputs: [
+      { name: 'amount', type: 'uint256' },
+      { name: 'timestamp', type: 'uint256' },
+    ],
     stateMutability: 'view',
     type: 'function',
   },
@@ -82,7 +95,7 @@ export const EAS_WRITE_ABI = [
   },
 ] as const;
 
-// BeliefStake stake function
+// BeliefStake write functions
 export const BELIEF_STAKE_WRITE_ABI = [
   {
     inputs: [{ name: 'attestationUID', type: 'bytes32' }],
@@ -91,9 +104,16 @@ export const BELIEF_STAKE_WRITE_ABI = [
     stateMutability: 'nonpayable',
     type: 'function',
   },
+  {
+    inputs: [{ name: 'attestationUID', type: 'bytes32' }],
+    name: 'unstake',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
 ] as const;
 
-// ERC20 approve function
+// ERC20 functions
 export const ERC20_ABI = [
   {
     inputs: [
@@ -103,6 +123,13 @@ export const ERC20_ABI = [
     name: 'approve',
     outputs: [{ name: '', type: 'bool' }],
     stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'account', type: 'address' }],
+    name: 'balanceOf',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
     type: 'function',
   },
 ] as const;

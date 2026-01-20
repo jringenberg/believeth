@@ -5,6 +5,11 @@ type Belief = {
   totalStaked: string;
   stakerCount: number;
   createdAt: string;
+  lastStakedAt: string;
+  stakes: Array<{
+    stakedAt: string;
+    active: boolean;
+  }>;
 };
 
 const beliefsQuery = gql`
@@ -14,6 +19,10 @@ const beliefsQuery = gql`
       totalStaked
       stakerCount
       createdAt
+      stakes(where: { active: true }, orderBy: stakedAt, orderDirection: desc, first: 1) {
+        stakedAt
+        active
+      }
     }
   }
 `;
@@ -27,5 +36,9 @@ export async function getBeliefs(): Promise<Belief[]> {
   const client = new GraphQLClient(endpoint);
   const data = await client.request<{ beliefs: Belief[] }>(beliefsQuery);
 
-  return data.beliefs;
+  // Calculate lastStakedAt from the most recent active stake
+  return data.beliefs.map((belief) => ({
+    ...belief,
+    lastStakedAt: belief.stakes[0]?.stakedAt || belief.createdAt,
+  }));
 }

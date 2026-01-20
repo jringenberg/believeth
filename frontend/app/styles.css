@@ -132,8 +132,27 @@ ul {
   z-index: 10;
 }
 
+.wallet-button button {
+  font-family: Helvetica, Arial, sans-serif !important;
+  font-size: 1rem !important;
+  text-transform: uppercase !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.05rem !important;
+  box-shadow: none !important;
+}
+
+.wallet-button [data-testid="rk-connect-button"] {
+  font-weight: 400 !important;
+}
+
+.wallet-button [data-testid="rk-account-button"] {
+  font-weight: 400 !important;
+  border: 1px solid #000 !important;
+}
+
 .main {
   margin-top: 5rem;
+  margin-bottom: 5rem;
 }
 
 /* Hero / Compose Section */
@@ -249,6 +268,10 @@ ul {
   font-family: 'Times New Roman', Times, serif;
   font-size: 0.875rem;
   text-align: center;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: #FFFBEA;
+  border: 1px solid #000;
 }
 
 .progress-container {
@@ -258,14 +281,14 @@ ul {
 .progress-bar-bg {
   width: 100%;
   height: 0.5rem;
-  background: #000;
+  background: #F2F2F2;
   border-radius: 0.25rem;
   overflow: hidden;
 }
 
 .progress-bar-fill {
   height: 100%;
-  background: #cdffc7;
+  background: #000;
   transition: width 0.3s ease;
 }
 
@@ -402,6 +425,25 @@ ul {
 .btn-stake:hover:not(:disabled) {
   color: #0000ee;
   text-decoration: underline;
+}
+
+.belief-progress {
+  padding: 1rem 0 0.5rem 0;
+  overflow: hidden;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+  }
+  to {
+    max-height: 100px;
+    opacity: 1;
+    padding-top: 1rem;
+  }
 }
 
 /* Responsive */

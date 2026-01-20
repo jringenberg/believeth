@@ -3,6 +3,7 @@
 import { getDefaultConfig, RainbowKitProvider, lightTheme, AvatarComponent } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
 import { baseSepolia } from 'wagmi/chains';
+import { http } from 'viem';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { ChainGuard } from './ChainGuard';
 import { ErrorSuppressor } from './ErrorSuppressor';
@@ -11,10 +12,14 @@ const walletConnectProjectId =
   process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ??
   'f663d58e37395d5dad4d6ba0fe9fd134';
 
+// Explicit Base Sepolia configuration with RPC URL
 const config = getDefaultConfig({
   appName: 'Believeth',
   projectId: walletConnectProjectId,
   chains: [baseSepolia],
+  transports: {
+    [baseSepolia.id]: http('https://sepolia.base.org'),
+  },
   ssr: true,
 });
 
@@ -26,7 +31,7 @@ const appInfo = {
 const customTheme = lightTheme({
   accentColor: '#FFFBEA',
   accentColorForeground: '#000',
-  borderRadius: 'medium',
+  borderRadius: 'large',
   overlayBlur: 'small',
   fontStack: 'system',
 });

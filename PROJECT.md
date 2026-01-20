@@ -10,11 +10,12 @@ A protocol where users stake cryptocurrency on belief statements to create publi
 
 ## Current Status
 
-**Phase:** Testnet MVP complete - full create + stake flow working end-to-end on Base Sepolia
+**Phase:** Core functionality complete - staking, unstaking, and sorting all working on Base Sepolia testnet
 **Tests:** Foundry tests passing for `BeliefStake.sol`
-**Frontend:** Next.js app running, wallet connection + create belief + stake working
-**Subgraph:** Deployed and indexing on The Graph Studio
-**Next:** Enable staking on existing beliefs, add unstake UI, build account/belief detail pages
+**Frontend:** Complete UI with create, stake, unstake, three sort modes (Popular/Recent/Wallet), progress indicators
+**Subgraph:** Deployed and indexing on The Graph Studio with stake activity tracking
+**Production:** Live at believeth.xyz and legitify.xyz
+**Next:** Build account pages (`/account/[address]`) and belief detail pages (`/belief/[uid]`)
 
 ## Technical Architecture
 
@@ -148,74 +149,57 @@ $2 stake is 10-20x larger than gas costs - gas not a barrier.
 
 ### 🎯 Next Session: Start Here
 
-**Task:** Enable staking on existing beliefs (Priority #1)
+**Task:** Build account and belief detail pages (Priority #1)
 
-**Files to modify:**
-- `frontend/app/page.tsx` - Add stake handler to belief cards
-- `frontend/lib/contracts.ts` - Already has necessary ABIs
-
-**Implementation checklist:**
-- [ ] Add `handleStakeExisting(beliefId)` function
-- [ ] Check if user already staked on this belief (query contract)
-- [ ] Show "Staked ✓" if already staked, else "+$2" button enabled
-- [ ] Implement approve USDC → stake flow (similar to create flow)
-- [ ] Add progress indicator during transaction
-- [ ] Refresh belief list after successful stake
+**Completed in Session 7:**
+- ✅ Enable staking on existing beliefs
+- ✅ Add unstake flow
+- ✅ View toggles (Popular/Recent/Wallet sorting)
+- ✅ Progress indicators
+- ✅ Mobile wallet compatibility
 
 ---
 
 **Immediate Priorities (in order):**
 
-1. **Enable staking on existing beliefs** - The "+$2" buttons on belief list currently disabled
-   - Add stake handler to existing belief cards
-   - Check if user already staked (disable button with "Staked ✓")
-   - Show approval + stake flow with progress indicator
-   - Update UI after successful stake
-
-2. **Add unstake flow** - Contract has `unstake()` function, need UI + flow
-   - Show "Unstake $2" button on beliefs user has staked
-   - All-or-nothing withdrawal (contract enforces this)
-   - Confirm modal: "Remove your $2 stake from this belief?"
-   - Update UI after successful unstake
-
-3. **Build account page** - `/account/[address]` showing user's beliefs + their stakes
+1. **Build account page** - `/account/[address]` showing user's beliefs + their stakes
    - List all beliefs user created
    - List all beliefs user has staked on
    - Show timestamps and total stake amounts
    - "You" badge for own address
+   - Mobile responsive
 
-4. **Build belief detail page** - `/belief/[uid]` showing single belief + all activity
+2. **Build belief detail page** - `/belief/[uid]` showing single belief + all activity
    - Show full belief text prominently
    - List all stakers with addresses and timestamps
    - Show total staked and staker count
    - Activity timeline (stakes/unstakes)
    - Stake/unstake buttons at top
+   - Share link functionality
 
-5. **Add view toggles** - Chronological vs. by-stake sorting
-   - Toggle: "Most Staked" / "Newest"
-   - Update subgraph query based on selection
-   - Persist selection in URL params
+3. **Activity feeds** - Show recent platform activity
+   - Global feed: all stakes/unstakes across platform
+   - Filter by time period (24h, 7d, 30d, all)
+   - Pagination for large lists
 
-6. **Styling improvements** - Polish current UI
-   - Responsive design tweaks
-   - Better mobile experience
-   - Loading states
-   - Error states
+4. **Responsive design polish** - Mobile-first improvements
+   - Optimize single column layout for mobile
+   - Touch-friendly button sizes
+   - Improve progress bar visibility on small screens
+   - Test on various screen sizes
 
-7. **Yield integration (Aave)** - Generate protocol revenue from staked capital
+5. **Yield integration (Aave)** - Generate protocol revenue from staked capital
    - Implement YieldStrategy interface
    - Build AaveYieldStrategy contract
    - Test on testnet first
    - Deploy and integrate
 
-**Missing Features for V1:**
+**Remaining Features for V1:**
 
-- Unstaking UI and flow
-- Staking on existing beliefs (not just creating new ones)
 - Account pages (see all beliefs you've backed)
 - Belief detail pages (see all stakers + activity timeline)
-- Different sort/filter views (newest, most staked, etc.)
-- Activity feeds
+- Activity feeds (global and per-belief)
+- Additional polish and mobile optimization
 - Yield generation strategy (Aave USDC deposits)
 
 ## Mainnet Readiness
@@ -350,6 +334,85 @@ ETH_RPC_URL=https://sepolia.base.org
 - Committed all changes to git
 - Next session: Enable staking on existing beliefs ("+$2" buttons currently disabled)
 
+**Session 7 (January 20, 2026):**
+
+**Visual Design & Typography:**
+- Implemented complete visual redesign from SVG mockup
+- Established typography system: Times New Roman (1rem/1.5rem) + Helvetica (0.9rem)
+- Converted all font sizes to rem units for consistency
+- Single column layout (32rem wide) for belief cards
+- Belief cards now show amount and stake link underneath text
+- Light yellow (#FFFBEA) button background with inner shadow (#FFF1BA)
+- Status messages styled with light yellow background and black border
+
+**Staking & Unstaking - COMPLETE ✅:**
+- Enabled staking on existing beliefs (approve USDC → stake flow)
+- Implemented full unstaking functionality
+- Added inline progress bars that animate open under active belief card
+- Progress bar: light gray (#F2F2F2) background, black fill
+- Balance checking before stake attempts with clear error messages
+- Auto-refreshes belief list after successful stake/unstake
+- Shows "STAKE $2" or "UNSTAKE $2" dynamically based on user's stake status
+
+**Sorting & Filtering:**
+- "Popular Beliefs" sorts by total staked (existing behavior)
+- Fixed "Recent Beliefs" to sort by last stake activity (lastStakedAt) not creation time
+- Added "Connected Wallet" filter showing only beliefs user has staked on
+- Dropdown shows truncated wallet address (0x1234...)
+- Auto-switches to "Recent Beliefs" after stake/create actions
+- Hides "Connected Wallet" option when wallet not connected
+- Auto-resets to "Popular" if user disconnects while on wallet filter
+
+**Mobile & Wallet Compatibility:**
+- Added explicit chain configuration: `transports: { [baseSepolia.id]: http('https://sepolia.base.org') }`
+- All transactions now include `chain: baseSepolia` parameter
+- Fixed "network namespace" errors on mobile wallets (MetaMask Mobile tested)
+
+**RainbowKit Customization:**
+- Custom theme: light yellow accent (#FFFBEA), system fonts, no avatars
+- Connect button: Helvetica 1rem, uppercase, font-weight 400, letter-spacing 0.05rem
+- Black border on connected state
+- Border radius set to 'large'
+- Removed drop shadows
+
+**"$" Button Functionality:**
+- Mints 20 MockUSDC for testing
+- When disconnected: triggers connect wallet modal
+- When connected: mints test USDC
+- Always visible at opacity 1
+
+**Smart Button States:**
+- "Attest and Stake" button: gray when disconnected, triggers connect modal
+- "Stake $2" buttons: trigger connect modal when disconnected, stake when connected
+- Progress indicators show transaction status inline
+
+**UI Polish:**
+- Sticky header with "$" button (left) and Connect Wallet (right)
+- Main content scrolls behind header
+- 5rem bottom margin on main content
+- Sorting dropdown styled like other buttons with black outline
+- Improved button hover states and transitions
+
+**Technical Improvements:**
+- Subgraph now fetches most recent active stake per belief for accurate sorting
+- Balance checking prevents cryptic RPC errors
+- Better error messages: "Insufficient USDC. You have $0.00, need $2.00. Click $ to mint."
+- All transactions explicitly specify chain for mobile compatibility
+
+**Completed Priorities:**
+- ✅ Enable staking on existing beliefs
+- ✅ Add unstake flow
+- ✅ View toggles (Popular/Recent/Wallet)
+- ✅ Progress indicators for transactions
+- ✅ Mobile wallet support improvements
+- ✅ Complete visual design implementation
+
+**Next Session Priorities:**
+1. Build account page (`/account/[address]`)
+2. Build belief detail page (`/belief/[uid]`)
+3. Add activity timeline/feeds
+4. Yield integration (Aave) for mainnet readiness
+
 ## Repository Structure
 
 ```text
@@ -382,6 +445,6 @@ believeth/
 
 ---
 
-**Last Updated:** January 16, 2026
-**Current Phase:** Feature expansion - complete core functionality
-**Next Action:** Enable staking on existing beliefs + add unstake flow
+**Last Updated:** January 20, 2026
+**Current Phase:** Core functionality complete - building account & detail pages
+**Next Action:** Build account page (`/account/[address]`) and belief detail page (`/belief/[uid]`)

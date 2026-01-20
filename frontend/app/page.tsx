@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
+import { baseSepolia } from 'wagmi/chains';
 import { decodeAbiParameters, encodeAbiParameters } from 'viem';
 import { getBeliefs } from '@/lib/subgraph';
 import { ProgressBar } from './ProgressBar';
@@ -10,12 +11,18 @@ import {
   CONTRACTS,
   EAS_ABI,
   EAS_WRITE_ABI,
+  BELIEF_STAKE_ABI,
   BELIEF_STAKE_WRITE_ABI,
   ERC20_ABI,
   MOCK_USDC_ABI,
   STAKE_AMOUNT,
   MINT_AMOUNT,
 } from '@/lib/contracts';
+
+function truncateAddress(addr: string): string {
+  if (!addr) return '';
+  return `${addr.slice(0, 6)}...`;
+}
 
 export default function Home() {
   const { address, isConnected } = useAccount();
@@ -33,11 +40,14 @@ export default function Home() {
       totalStaked: string;
       stakerCount: number;
       createdAt: string;
+      lastStakedAt: string;
     }>
   >([]);
   const [beliefTexts, setBeliefTexts] = useState<Record<string, string>>({});
   const [sortOption, setSortOption] = useState<'popular' | 'recent' | 'wallet'>('popular');
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [userStakes, setUserStakes] = useState<Record<string, boolean>>({});
+  const [loadingBeliefId, setLoadingBeliefId] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchBeliefs() {
@@ -52,22 +62,31 @@ export default function Home() {
     fetchBeliefs();
   }, []);
 
+  // Reset to "popular" if user disconnects while on "wallet" filter
+  useEffect(() => {
+    if (!isConnected && sortOption === 'wallet') {
+      setSortOption('popular');
+    }
+  }, [isConnected, sortOption]);
+
   // Filter and sort beliefs based on selected option
   const displayedBeliefs = beliefs.filter((belief) => {
     if (sortOption === 'popular' || sortOption === 'recent') {
       // Only show beliefs with non-zero stake
       return BigInt(belief.totalStaked || '0') > 0n;
     }
-    // For 'wallet' option, we'll need to check if connected and filter by user
-    // For now, show all beliefs (will implement wallet filtering when we add that feature)
-    return true;
+    // For 'wallet' option, show beliefs where connected wallet has an active stake
+    if (sortOption === 'wallet' && address) {
+      return userStakes[belief.id] === true;
+    }
+    return false;
   }).sort((a, b) => {
     if (sortOption === 'popular') {
       // Sort by total staked (descending)
       return Number(BigInt(b.totalStaked || '0') - BigInt(a.totalStaked || '0'));
     } else if (sortOption === 'recent') {
-      // Sort by creation time (most recent first)
-      return Number(b.createdAt) - Number(a.createdAt);
+      // Sort by most recent stake activity (most recent first)
+      return Number(b.lastStakedAt) - Number(a.lastStakedAt);
     }
     // Default sort (for wallet option)
     return 0;
@@ -128,6 +147,40 @@ export default function Home() {
     fetchBeliefTexts();
   }, [beliefs, beliefTexts, publicClient]);
 
+  // Check which beliefs the user has staked on
+  useEffect(() => {
+    async function checkUserStakes() {
+      if (!publicClient || !address || beliefs.length === 0) return;
+
+      try {
+        const stakeChecks = await Promise.all(
+          beliefs.map(async (belief) => {
+            try {
+              const result = await publicClient.readContract({
+                address: CONTRACTS.BELIEF_STAKE as `0x${string}`,
+                abi: BELIEF_STAKE_ABI,
+                functionName: 'getStake',
+                args: [belief.id as `0x${string}`, address],
+              });
+              
+              const [amount] = result as [bigint, bigint];
+              return [belief.id, amount > 0n] as const;
+            } catch (error) {
+              console.error('Error checking stake:', error);
+              return [belief.id, false] as const;
+            }
+          })
+        );
+
+        setUserStakes(Object.fromEntries(stakeChecks));
+      } catch (error) {
+        console.error('Error checking user stakes:', error);
+      }
+    }
+
+    checkUserStakes();
+  }, [beliefs, address, publicClient]);
+
   async function handleMint() {
     if (!walletClient || !address) return;
 
@@ -137,6 +190,7 @@ export default function Home() {
         abi: MOCK_USDC_ABI,
         functionName: 'mint',
         args: [address, MINT_AMOUNT],
+        chain: baseSepolia,
       });
 
       await publicClient?.waitForTransactionReceipt({ hash: mintTx });
@@ -145,6 +199,138 @@ export default function Home() {
       console.log('Minted 20 MockUSDC!');
     } catch (error: unknown) {
       console.error('Mint error:', error);
+    }
+  }
+
+  async function handleStake(attestationUID: string) {
+    if (!walletClient || !publicClient || !address) return;
+
+    setLoadingBeliefId(attestationUID);
+    setStatus('');
+    setProgress(10);
+    setProgressMessage('Checking balance...');
+
+    try {
+      // Check USDC balance first
+      const balance = await publicClient.readContract({
+        address: CONTRACTS.MOCK_USDC as `0x${string}`,
+        abi: ERC20_ABI,
+        functionName: 'balanceOf',
+        args: [address],
+      }) as bigint;
+
+      if (balance < STAKE_AMOUNT) {
+        const balanceFormatted = (Number(balance) / 1_000_000).toFixed(2);
+        setStatus(`❌ Insufficient USDC balance. You have $${balanceFormatted}, need $2.00. Click the "$" button to mint test USDC.`);
+        setProgress(0);
+        setProgressMessage('');
+        setLoadingBeliefId(null);
+        return;
+      }
+
+      // Step 1: Approve USDC
+      setProgress(33);
+      setProgressMessage('Approving USDC...');
+
+      const approveTx = await walletClient.writeContract({
+        address: CONTRACTS.MOCK_USDC as `0x${string}`,
+        abi: ERC20_ABI,
+        functionName: 'approve',
+        args: [CONTRACTS.BELIEF_STAKE as `0x${string}`, STAKE_AMOUNT],
+        chain: baseSepolia,
+      });
+
+      await publicClient.waitForTransactionReceipt({ hash: approveTx });
+
+      // Step 2: Stake
+      setProgress(66);
+      setProgressMessage('Staking $2...');
+
+      const stakeTx = await walletClient.writeContract({
+        address: CONTRACTS.BELIEF_STAKE as `0x${string}`,
+        abi: BELIEF_STAKE_WRITE_ABI,
+        functionName: 'stake',
+        args: [attestationUID as `0x${string}`],
+        chain: baseSepolia,
+      });
+
+      await publicClient.waitForTransactionReceipt({ hash: stakeTx });
+
+      setProgress(100);
+      setProgressMessage('Staked!');
+
+      // Update user stakes state
+      setUserStakes((prev) => ({ ...prev, [attestationUID]: true }));
+
+      // Refresh beliefs to update totals
+      const fetchedBeliefs = await getBeliefs();
+      setBeliefs(fetchedBeliefs);
+
+      // Switch to Recent Beliefs to show the updated belief at the top
+      setSortOption('recent');
+
+      setTimeout(() => {
+        setProgress(0);
+        setProgressMessage('');
+        setLoadingBeliefId(null);
+      }, 2000);
+    } catch (error: unknown) {
+      console.error('Stake error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Stake failed';
+      setStatus(`❌ ${errorMessage}`);
+      setProgress(0);
+      setProgressMessage('');
+      setLoadingBeliefId(null);
+    }
+  }
+
+  async function handleUnstake(attestationUID: string) {
+    if (!walletClient || !publicClient) return;
+
+    setLoadingBeliefId(attestationUID);
+    setStatus('');
+    setProgress(50);
+    setProgressMessage('Unstaking...');
+
+    try {
+      const unstakeTx = await walletClient.writeContract({
+        address: CONTRACTS.BELIEF_STAKE as `0x${string}`,
+        abi: BELIEF_STAKE_WRITE_ABI,
+        functionName: 'unstake',
+        args: [attestationUID as `0x${string}`],
+        chain: baseSepolia,
+      });
+
+      setProgress(75);
+      setProgressMessage('Waiting for confirmation...');
+
+      await publicClient.waitForTransactionReceipt({ hash: unstakeTx });
+
+      setProgress(100);
+      setProgressMessage('Unstaked!');
+
+      // Update user stakes state
+      setUserStakes((prev) => ({ ...prev, [attestationUID]: false }));
+
+      // Refresh beliefs to update totals
+      const fetchedBeliefs = await getBeliefs();
+      setBeliefs(fetchedBeliefs);
+
+      // Switch to Recent Beliefs to show the updated belief at the top
+      setSortOption('recent');
+
+      setTimeout(() => {
+        setProgress(0);
+        setProgressMessage('');
+        setLoadingBeliefId(null);
+      }, 2000);
+    } catch (error: unknown) {
+      console.error('Unstake error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unstake failed';
+      setStatus(`❌ ${errorMessage}`);
+      setProgress(0);
+      setProgressMessage('');
+      setLoadingBeliefId(null);
     }
   }
 
@@ -157,11 +343,30 @@ export default function Home() {
 
     setLoading(true);
     setStatus('');
-    setProgress(10);
-    setProgressMessage('Creating attestation...');
+    setProgress(5);
+    setProgressMessage('Checking balance...');
 
     try {
+      // Check USDC balance first
+      const balance = await publicClient.readContract({
+        address: CONTRACTS.MOCK_USDC as `0x${string}`,
+        abi: ERC20_ABI,
+        functionName: 'balanceOf',
+        args: [address],
+      }) as bigint;
+
+      if (balance < STAKE_AMOUNT) {
+        const balanceFormatted = (Number(balance) / 1_000_000).toFixed(2);
+        setStatus(`❌ Insufficient USDC balance. You have $${balanceFormatted}, need $2.00. Click the "$" button to mint test USDC.`);
+        setProgress(0);
+        setProgressMessage('');
+        setLoading(false);
+        return;
+      }
+
       // Step 1: Create attestation
+      setProgress(10);
+      setProgressMessage('Creating attestation...');
       const encodedData = encodeAbiParameters(
         [{ name: 'belief', type: 'string' }],
         [belief]
@@ -186,6 +391,7 @@ export default function Home() {
             },
           },
         ],
+        chain: baseSepolia,
       });
 
       setProgress(20);
@@ -215,6 +421,7 @@ export default function Home() {
         abi: ERC20_ABI,
         functionName: 'approve',
         args: [CONTRACTS.BELIEF_STAKE as `0x${string}`, STAKE_AMOUNT],
+        chain: baseSepolia,
       });
 
       setProgress(50);
@@ -233,6 +440,7 @@ export default function Home() {
         abi: BELIEF_STAKE_WRITE_ABI,
         functionName: 'stake',
         args: [attestationUID],
+        chain: baseSepolia,
       });
 
       setProgress(70);
@@ -258,10 +466,14 @@ export default function Home() {
 
           if (found) {
             setProgress(100);
-            setProgressMessage('Belief created! Refreshing...');
+            setProgressMessage('Belief created!');
+            setBeliefs(latestBeliefs);
+            // Switch to Recent Beliefs to show the new belief at the top
+            setSortOption('recent');
             setTimeout(() => {
-              window.location.reload();
-            }, 1000);
+              setProgress(0);
+              setProgressMessage('');
+            }, 2000);
             break;
           }
         } catch (error) {
@@ -408,7 +620,7 @@ export default function Home() {
             >
               {sortOption === 'popular' && 'Popular Beliefs'}
               {sortOption === 'recent' && 'Recent Beliefs'}
-              {sortOption === 'wallet' && 'Connected Wallet'}
+              {sortOption === 'wallet' && address && `Connected Wallet ${truncateAddress(address)}`}
               <span className="dropdown-arrow">{showSortMenu ? '▲' : '▼'}</span>
             </button>
             {showSortMenu && (
@@ -433,16 +645,18 @@ export default function Home() {
                     Recent Beliefs
                   </button>
                 </li>
-                <li>
-                  <button
-                    onClick={() => {
-                      setSortOption('wallet');
-                      setShowSortMenu(false);
-                    }}
-                  >
-                    Connected Wallet
-                  </button>
-                </li>
+                {isConnected && address && (
+                  <li>
+                    <button
+                      onClick={() => {
+                        setSortOption('wallet');
+                        setShowSortMenu(false);
+                      }}
+                    >
+                      Connected Wallet {truncateAddress(address)}
+                    </button>
+                  </li>
+                )}
               </ul>
             )}
           </div>
@@ -453,20 +667,50 @@ export default function Home() {
               const dollars = Number(totalStaked) / 1_000_000;
               const text =
                 beliefTexts[beliefItem.id] || '[Test stake - no belief text]';
+              const hasStaked = userStakes[beliefItem.id] || false;
+
+              const isLoading = loadingBeliefId === beliefItem.id;
 
               return (
                 <li key={beliefItem.id} className="belief-card">
                   <div className="belief-text">{text}</div>
                   <div className="belief-footer">
                     <div className="belief-amount">${Math.floor(dollars)}</div>
-                    <button className="btn-stake" disabled>
-                      Stake $2
-                    </button>
+                    {hasStaked ? (
+                      <button 
+                        className="btn-stake"
+                        onClick={() => handleUnstake(beliefItem.id)}
+                        disabled={loading}
+                      >
+                        Unstake $2
+                      </button>
+                    ) : (
+                      <button 
+                        className="btn-stake"
+                        onClick={() => {
+                          if (!isConnected) {
+                            openConnectModal();
+                          } else {
+                            handleStake(beliefItem.id);
+                          }
+                        }}
+                        disabled={loading}
+                      >
+                        Stake $2
+                      </button>
+                    )}
                   </div>
+                  {isLoading && progress > 0 && (
+                    <div className="belief-progress">
+                      <ProgressBar progress={progress} message={progressMessage} />
+                    </div>
+                  )}
                 </li>
               );
             })}
           </ul>
+
+          {!loading && status && <p className="status">{status}</p>}
         </section>
       </main>
       </div>
