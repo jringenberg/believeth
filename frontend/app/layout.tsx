@@ -7,6 +7,12 @@ import Script from 'next/script';
 export const metadata: Metadata = {
   title: 'Believeth',
   description: 'Stake on beliefs',
+  icons: {
+    icon: {
+      url: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50' y='75' text-anchor='middle' font-size='80' font-family='serif' fill='%23000'>$</text></svg>",
+      type: 'image/svg+xml',
+    },
+  },
 };
 
 export default function RootLayout({

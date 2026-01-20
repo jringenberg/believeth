@@ -34,6 +34,8 @@ export default function Home() {
     }>
   >([]);
   const [beliefTexts, setBeliefTexts] = useState<Record<string, string>>({});
+  const [sortOption, setSortOption] = useState<'popular' | 'recent' | 'wallet'>('popular');
+  const [showSortMenu, setShowSortMenu] = useState(false);
 
   useEffect(() => {
     async function fetchBeliefs() {
@@ -47,6 +49,27 @@ export default function Home() {
 
     fetchBeliefs();
   }, []);
+
+  // Filter and sort beliefs based on selected option
+  const displayedBeliefs = beliefs.filter((belief) => {
+    if (sortOption === 'popular' || sortOption === 'recent') {
+      // Only show beliefs with non-zero stake
+      return BigInt(belief.totalStaked || '0') > 0n;
+    }
+    // For 'wallet' option, we'll need to check if connected and filter by user
+    // For now, show all beliefs (will implement wallet filtering when we add that feature)
+    return true;
+  }).sort((a, b) => {
+    if (sortOption === 'popular') {
+      // Sort by total staked (descending)
+      return Number(BigInt(b.totalStaked || '0') - BigInt(a.totalStaked || '0'));
+    } else if (sortOption === 'recent') {
+      // Sort by creation time (most recent first)
+      return Number(b.createdAt) - Number(a.createdAt);
+    }
+    // Default sort (for wallet option)
+    return 0;
+  });
 
   useEffect(() => {
     async function fetchBeliefTexts() {
@@ -244,44 +267,54 @@ export default function Home() {
   }
 
   return (
-    <div className="page">
-      <div className="wallet-button">
-        <ConnectButton label="Connect" />
-      </div>
-
-      <header className="header">
-        <h2 className="header-title">
-          Costly Signals
-          <br />
-          Prove Conviction
-        </h2>
+    <>
+      <header className="sticky-header">
+        <button className="dollar-button" disabled>
+          $
+        </button>
+        <div className="wallet-button">
+          <ConnectButton label="Connect Wallet" />
+        </div>
       </header>
 
-      <main className="main">
+      <div className="page">
+        <main className="main">
         {!isConnected ? (
           <section className="hero">
-            <h2 className="hero-title">$2 says you mean it</h2>
+            <h2 className="hero-title">
+              $2 says you mean it. The fact that it costs money to make a claim
+              shows that it has value and you&apos;re not just yapping. You have
+              conviction.
+            </h2>
 
             <div className="hero-input">
               <textarea
                 className="belief-textarea"
-                placeholder="..."
+                placeholder="about..."
                 maxLength={280}
                 disabled
               />
             </div>
 
             <button className="btn btn-primary" disabled>
-              Publish and Stake $2
+              Attest and Stake $2
             </button>
 
             <div className="hero-info">
-              <p>If you change your mind, unstake and get your money back.</p>
+              <p>
+                If you change your mind, unstake and take your money back.
+                There is no resolution, no reward. Just the fact that you said
+                it onchain, timestamped, verifiable forever.
+              </p>
             </div>
           </section>
         ) : (
           <section className="compose">
-            <h2 className="compose-title">$2 says you mean it</h2>
+            <h2 className="compose-title">
+              $2 says you mean it. The fact that it costs money to make a claim
+              shows that it has value and you&apos;re not just yapping. You have
+              conviction.
+            </h2>
 
             <form
               onSubmit={(e) => {
@@ -294,7 +327,7 @@ export default function Home() {
                   className="belief-textarea"
                   value={belief}
                   onChange={(e) => setBelief(e.target.value)}
-                  placeholder="..."
+                  placeholder="about..."
                   maxLength={280}
                   disabled={loading}
                 />
@@ -305,7 +338,7 @@ export default function Home() {
                 className="btn btn-primary"
                 disabled={loading || !belief.trim()}
               >
-                Publish and Stake $2
+                Attest and Stake $2
               </button>
 
               {loading && progress > 0 && (
@@ -315,16 +348,64 @@ export default function Home() {
             </form>
 
             <div className="compose-info">
-              <p>If you change your mind, unstake and get your money back.</p>
+              <p>
+                If you change your mind, unstake and take your money back.
+                There is no resolution, no reward. Just the fact that you said
+                it onchain, timestamped, verifiable forever.
+              </p>
             </div>
           </section>
         )}
 
         <section className="beliefs">
-          <h2 className="header-title">Popular Beliefs</h2>
+          <div className="sort-dropdown">
+            <button
+              className="sort-button"
+              onClick={() => setShowSortMenu(!showSortMenu)}
+            >
+              {sortOption === 'popular' && 'Popular Beliefs'}
+              {sortOption === 'recent' && 'Recent Beliefs'}
+              {sortOption === 'wallet' && 'Connected Wallet'}
+              <span className="dropdown-arrow">{showSortMenu ? '▲' : '▼'}</span>
+            </button>
+            {showSortMenu && (
+              <ul className="sort-menu">
+                <li>
+                  <button
+                    onClick={() => {
+                      setSortOption('popular');
+                      setShowSortMenu(false);
+                    }}
+                  >
+                    Popular Beliefs
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => {
+                      setSortOption('recent');
+                      setShowSortMenu(false);
+                    }}
+                  >
+                    Recent Beliefs
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => {
+                      setSortOption('wallet');
+                      setShowSortMenu(false);
+                    }}
+                  >
+                    Connected Wallet
+                  </button>
+                </li>
+              </ul>
+            )}
+          </div>
 
           <ul className="beliefs-list">
-            {beliefs.map((beliefItem) => {
+            {displayedBeliefs.map((beliefItem) => {
               const totalStaked = BigInt(beliefItem.totalStaked || '0');
               const dollars = Number(totalStaked) / 1_000_000;
               const text =
@@ -332,21 +413,20 @@ export default function Home() {
 
               return (
                 <li key={beliefItem.id} className="belief-card">
-                  <div className="belief-badge">
-                    <span className="badge-amount">${Math.floor(dollars)}</span>
-                    <span className="badge-label">Staked</span>
-                  </div>
                   <div className="belief-text">{text}</div>
-                  <button className="btn btn-stake" disabled>
-                    <span className="stake-label">Stake</span>
-                    <span className="stake-amount">$2</span>
-                  </button>
+                  <div className="belief-footer">
+                    <div className="belief-amount">${Math.floor(dollars)}</div>
+                    <button className="btn-stake" disabled>
+                      Stake $2
+                    </button>
+                  </div>
                 </li>
               );
             })}
           </ul>
         </section>
       </main>
-    </div>
+      </div>
+    </>
   );
 }

@@ -146,15 +146,67 @@ $2 stake is 10-20x larger than gas costs - gas not a barrier.
 
 ## Next Phase: Complete Core Features
 
+### 🎯 Next Session: Start Here
+
+**Task:** Enable staking on existing beliefs (Priority #1)
+
+**Files to modify:**
+- `frontend/app/page.tsx` - Add stake handler to belief cards
+- `frontend/lib/contracts.ts` - Already has necessary ABIs
+
+**Implementation checklist:**
+- [ ] Add `handleStakeExisting(beliefId)` function
+- [ ] Check if user already staked on this belief (query contract)
+- [ ] Show "Staked ✓" if already staked, else "+$2" button enabled
+- [ ] Implement approve USDC → stake flow (similar to create flow)
+- [ ] Add progress indicator during transaction
+- [ ] Refresh belief list after successful stake
+
+---
+
 **Immediate Priorities (in order):**
 
 1. **Enable staking on existing beliefs** - The "+$2" buttons on belief list currently disabled
+   - Add stake handler to existing belief cards
+   - Check if user already staked (disable button with "Staked ✓")
+   - Show approval + stake flow with progress indicator
+   - Update UI after successful stake
+
 2. **Add unstake flow** - Contract has `unstake()` function, need UI + flow
+   - Show "Unstake $2" button on beliefs user has staked
+   - All-or-nothing withdrawal (contract enforces this)
+   - Confirm modal: "Remove your $2 stake from this belief?"
+   - Update UI after successful unstake
+
 3. **Build account page** - `/account/[address]` showing user's beliefs + their stakes
+   - List all beliefs user created
+   - List all beliefs user has staked on
+   - Show timestamps and total stake amounts
+   - "You" badge for own address
+
 4. **Build belief detail page** - `/belief/[uid]` showing single belief + all activity
+   - Show full belief text prominently
+   - List all stakers with addresses and timestamps
+   - Show total staked and staker count
+   - Activity timeline (stakes/unstakes)
+   - Stake/unstake buttons at top
+
 5. **Add view toggles** - Chronological vs. by-stake sorting
+   - Toggle: "Most Staked" / "Newest"
+   - Update subgraph query based on selection
+   - Persist selection in URL params
+
 6. **Styling improvements** - Polish current UI
+   - Responsive design tweaks
+   - Better mobile experience
+   - Loading states
+   - Error states
+
 7. **Yield integration (Aave)** - Generate protocol revenue from staked capital
+   - Implement YieldStrategy interface
+   - Build AaveYieldStrategy contract
+   - Test on testnet first
+   - Deploy and integrate
 
 **Missing Features for V1:**
 
@@ -292,8 +344,11 @@ ETH_RPC_URL=https://sepolia.base.org
 - Verified subgraph deployed and indexing on The Graph Studio
 - Confirmed production deployment live at believeth.xyz and legitify.xyz
 - Assessed current state: testnet MVP complete, ready for feature expansion
-- Updated PROJECT.md with accurate status and roadmap
-- Next priorities: Enable staking on existing beliefs, add unstake UI, build account/belief pages
+- Documented core product conviction: $2 is CAPTCHA not signal amplifier
+- Added binary stake rule: one $2 per user per belief, no multiple stakes
+- Updated PROJECT.md with accurate status, roadmap, and detailed next steps
+- Committed all changes to git
+- Next session: Enable staking on existing beliefs ("+$2" buttons currently disabled)
 
 ## Repository Structure
 
