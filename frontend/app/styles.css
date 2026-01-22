@@ -67,6 +67,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+body.faucet-active {
+  background: var(--color-black);
+  color: var(--color-white);
+}
+
 button {
   font-family: Helvetica, Arial, sans-serif;
   border: none;
@@ -82,6 +87,14 @@ a {
 a:hover {
   color: var(--color-accent-hover);
   text-decoration: underline;
+}
+
+/* Content text */
+.content {
+  margin-top: 1.5rem;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.5rem;
+  line-height: 2.25rem;
 }
 
 button:disabled {
@@ -208,11 +221,11 @@ ul {
 /* Headline */
 .headline {
   font-family: 'Times New Roman', Times, serif;
-  font-size: 3rem;
+  font-size: 3.2rem;
   line-height: 1.2;
   font-weight: normal;
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 3.4rem;
 }
 
 /* Hero / Compose Section */
@@ -221,12 +234,8 @@ ul {
   width: 100%;
 }
 
-.hero-title,
-.compose-title {
-  font-family: 'Times New Roman', Times, serif;
-  font-size: 1.5rem;
-  line-height: 2.25rem;
-  font-weight: normal;
+.hero p,
+.compose p {
   margin-bottom: 0.5rem;
 }
 
@@ -318,6 +327,22 @@ ul {
   box-shadow: none !important;
 }
 
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--color-text-primary);
+  color: var(--color-text-primary);
+  box-shadow: none;
+}
+
+.btn-outline:hover:not(:disabled) {
+  opacity: 0.7;
+}
+
+.btn-outline:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 /* Stake button styles defined in belief card section below */
 
 /* Hero / Compose Info */
@@ -373,7 +398,7 @@ ul {
 .progress-bar-fill {
   height: 100%;
   background: #000;
-  transition: width 0.3s ease;
+  transition: width 2s ease;
 }
 
 .progress-message {
@@ -532,6 +557,61 @@ ul {
     opacity: 1;
     padding-top: 0.5rem;
   }
+}
+
+/* Faucet Modal */
+body.faucet-active .sticky-header {
+  background: var(--color-black);
+}
+
+body.faucet-active .dollar-button {
+  background: var(--color-white);
+  color: var(--color-black);
+}
+
+body.faucet-active .wallet-button button {
+  color: var(--color-white) !important;
+  border-color: var(--color-white) !important;
+}
+
+body.faucet-active .btn-outline {
+  border-color: var(--color-white);
+  color: var(--color-white);
+}
+
+.faucet-modal {
+  width: 100%;
+}
+
+.faucet-modal .content {
+  margin-bottom: 1rem;
+}
+
+.faucet-section {
+  margin-bottom: 2rem;
+}
+
+.faucet-section button {
+  margin-top: 1rem;
+}
+
+.contract-address {
+  background: var(--color-white);
+  color: var(--color-black);
+  padding: 0.125rem 0.25rem;
+  font-family: 'Courier New', monospace;
+  cursor: pointer;
+  word-break: break-all;
+}
+
+.contract-address:hover {
+  opacity: 0.8;
+}
+
+body.faucet-active .status {
+  background: var(--color-white);
+  color: var(--color-black);
+  border: none;
 }
 
 /* Responsive */

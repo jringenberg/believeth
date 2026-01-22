@@ -14,9 +14,7 @@ import {
   BELIEF_STAKE_ABI,
   BELIEF_STAKE_WRITE_ABI,
   ERC20_ABI,
-  MOCK_USDC_ABI,
   STAKE_AMOUNT,
-  MINT_AMOUNT,
 } from '@/lib/contracts';
 
 function truncateAddress(addr: string): string {
@@ -50,6 +48,21 @@ export default function Home() {
   const [loadingBeliefId, setLoadingBeliefId] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [textareaFocused, setTextareaFocused] = useState(false);
+  const [showFaucetModal, setShowFaucetModal] = useState(false);
+  const [faucetLoading, setFaucetLoading] = useState<'eth' | 'usdc' | null>(null);
+  const [faucetStatus, setFaucetStatus] = useState('');
+
+  // Toggle faucet mode body class
+  useEffect(() => {
+    if (showFaucetModal) {
+      document.body.classList.add('faucet-active');
+    } else {
+      document.body.classList.remove('faucet-active');
+    }
+    return () => {
+      document.body.classList.remove('faucet-active');
+    };
+  }, [showFaucetModal]);
 
   // Auto-grow textarea as content changes
   useEffect(() => {
@@ -193,24 +206,46 @@ export default function Home() {
     checkUserStakes();
   }, [beliefs, address, publicClient]);
 
-  async function handleMint() {
+  function handleFaucetETH() {
+    // Open Base Sepolia faucet in new tab
+    window.open('https://www.coinbase.com/faucets/base-ethereum-sepolia-faucet', '_blank');
+  }
+  
+  async function handleFaucetUSDC() {
     if (!walletClient || !address) return;
-
+    
+    setFaucetLoading('usdc');
+    setFaucetStatus('');
+    
     try {
       const mintTx = await walletClient.writeContract({
         address: CONTRACTS.MOCK_USDC as `0x${string}`,
-        abi: MOCK_USDC_ABI,
+        abi: [
+          {
+            inputs: [
+              { name: 'to', type: 'address' },
+              { name: 'amount', type: 'uint256' },
+            ],
+            name: 'mint',
+            outputs: [],
+            stateMutability: 'nonpayable',
+            type: 'function',
+          },
+        ],
         functionName: 'mint',
-        args: [address, MINT_AMOUNT],
+        args: [address, 20000000n], // 20 USDC
         chain: baseSepolia,
       });
 
       await publicClient?.waitForTransactionReceipt({ hash: mintTx });
       
-      // Success - could add a toast notification here
-      console.log('Minted 20 MockUSDC!');
+      setFaucetStatus(`✅ Minted 20 MockUSDC! Transaction: ${mintTx}`);
     } catch (error: unknown) {
-      console.error('Mint error:', error);
+      console.error('Faucet USDC error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to mint USDC';
+      setFaucetStatus(`❌ ${errorMessage}`);
+    } finally {
+      setFaucetLoading(null);
     }
   }
 
@@ -249,6 +284,7 @@ export default function Home() {
       // Step 1: Approve USDC
       setProgress(33);
       setProgressMessage('Approving USDC...');
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Let animation play
 
       const approveTx = await walletClient.writeContract({
         address: CONTRACTS.MOCK_USDC as `0x${string}`,
@@ -263,6 +299,7 @@ export default function Home() {
       // Step 2: Stake
       setProgress(66);
       setProgressMessage('Staking $2...');
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Let animation play
 
       const stakeTx = await walletClient.writeContract({
         address: CONTRACTS.BELIEF_STAKE as `0x${string}`,
@@ -279,7 +316,8 @@ export default function Home() {
 
       // Poll subgraph to wait for indexing
       setProgress(75);
-      setProgressMessage('Processing your stake...');
+      setProgressMessage('Reading transaction from latest block...');
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Let animation play
 
       const maxAttempts = 10;
       for (let attempt = 0; attempt < maxAttempts; attempt++) {
@@ -322,10 +360,15 @@ export default function Home() {
 
     setLoadingBeliefId(attestationUID);
     setStatus('');
-    setProgress(50);
+    setProgress(0);
     setProgressMessage('Unstaking...');
-
+    
     try {
+      // Ease to 50%
+      await new Promise((resolve) => setTimeout(resolve, 100)); // Small delay for render
+      setProgress(50);
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Let animation play
+
       const unstakeTx = await walletClient.writeContract({
         address: CONTRACTS.BELIEF_STAKE as `0x${string}`,
         abi: BELIEF_STAKE_WRITE_ABI,
@@ -336,6 +379,7 @@ export default function Home() {
 
       setProgress(75);
       setProgressMessage('Waiting for confirmation...');
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Let animation play
 
       await publicClient.waitForTransactionReceipt({ hash: unstakeTx });
 
@@ -344,7 +388,8 @@ export default function Home() {
 
       // Poll subgraph to wait for indexing
       setProgress(75);
-      setProgressMessage('Processing your unstake...');
+      setProgressMessage('Reading transaction from latest block...');
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Let animation play
 
       const maxAttempts = 10;
       for (let attempt = 0; attempt < maxAttempts; attempt++) {
@@ -491,7 +536,7 @@ export default function Home() {
 
       // Poll subgraph for new belief
       setProgress(90);
-      setProgressMessage('Processing your belief...');
+      setProgressMessage('Reading transaction from latest block...');
       setBelief('');
 
       // Poll for the new attestation in subgraph
@@ -549,15 +594,9 @@ export default function Home() {
           <>
             <header className="sticky-header">
               <button 
-                className="dollar-button" 
-                onClick={() => {
-                  if (!isConnected) {
-                    openConnectModal();
-                  } else {
-                    handleMint();
-                  }
-                }}
-                title={isConnected ? "Mint 20 MockUSDC for testing" : "Connect wallet"}
+                className={`dollar-button ${showFaucetModal ? 'inverted' : ''}`}
+                onClick={() => setShowFaucetModal(!showFaucetModal)}
+                title="Get test funds"
               >
                 $
               </button>
@@ -573,17 +612,54 @@ export default function Home() {
 
             <div className="page">
               <main className="main">
-              <h1 className="headline">
-                Costly Signals<br />Prove Conviction
-              </h1>
+              {showFaucetModal ? (
+                <section className="faucet-modal">
+                  <h1 className="headline">Free Fake Money<br />For Testing</h1>
+                  
+                  <p className="content">You need two things to test Believeth on Base Sepolia testnet:</p>
+                  
+                  <div className="faucet-section">
+<p className="content">Base Sepolia ETH - Pays for gas (blockchain transaction fees). You&apos;ll need about 0.0005 ETH per belief creation, which covers the three transactions: approve, attest, and stake.</p>
+                    
+                    <button 
+                      className="btn btn-outline" 
+                      onClick={handleFaucetETH}
+                    >
+                      Get ETH from Coinbase Faucet →
+                    </button>
+                  </div>
+                  
+                  <div className="faucet-section">
+                    <p className="content">MockUSDC - Fake USDC for staking. Each belief costs $2 (2,000,000 in 6-decimal format). This is testnet money with no real value.</p>
+                    
+                    <button 
+                      className="btn btn-outline" 
+                      onClick={handleFaucetUSDC}
+                      disabled={!isConnected || faucetLoading === 'usdc'}
+                    >
+                      {faucetLoading === 'usdc' ? 'Minting...' : 'Get 20 MockUSDC'}
+                    </button>
+                  </div>
+                  
+                  <div className="faucet-section">
+                    <p className="content">To see MockUSDC in your wallet: Add custom token with address <code className="contract-address" onClick={() => navigator.clipboard.writeText(CONTRACTS.MOCK_USDC)}>{CONTRACTS.MOCK_USDC}</code>, symbol USDC, decimals 6. In MetaMask: Assets → Import tokens → Custom token → paste address.</p>
+                  </div>
+                  
+                  {faucetStatus && <p className="status">{faucetStatus}</p>}
+                </section>
+              ) : (
+                <>
+                <h1 className="headline">
+                  Costly Signals<br />Prove Conviction
+                </h1>
 
-              {!isConnected ? (
+                {!isConnected ? (
                 <section className="hero">
-                  <h2 className="hero-title">
+                  <p className="content">
                     $2 says you mean it. The fact that it costs money to make a claim
-                    shows that it has value and you&apos;re not just yapping. You have
+                    shows that it is valuable to you and you&apos;re not just yapping. You have
                     conviction.
-                  </h2>
+                  </p>
 
                   <div className="hero-input">
                     <textarea
@@ -603,7 +679,7 @@ export default function Home() {
                   </button>
 
                   <div className="hero-info">
-                    <p>
+                    <p className="content">
                       If you change your mind, unstake and take your money back.
                       There is no resolution, no reward. Just the fact that you said
                       it onchain, timestamped, verifiable forever.
@@ -612,11 +688,11 @@ export default function Home() {
                 </section>
               ) : (
           <section className="compose">
-            <h2 className="compose-title">
+            <p className="content">
               $2 says you mean it. The fact that it costs money to make a claim
-              shows that it has value and you&apos;re not just yapping. You have
+              shows that it is valuable to you and you&apos;re not just yapping. You have
               conviction.
-            </h2>
+            </p>
 
             <form
               onSubmit={(e) => {
@@ -664,7 +740,7 @@ export default function Home() {
             </form>
 
             <div className="compose-info">
-              <p>
+              <p className="content">
                 If you change your mind, unstake and take your money back.
                 There is no resolution, no reward. Just the fact that you said
                 it onchain, timestamped, verifiable forever.
@@ -773,6 +849,8 @@ export default function Home() {
 
           {!loading && status && <p className="status">{status}</p>}
         </section>
+        </>
+      )}
       </main>
       </div>
           </>
