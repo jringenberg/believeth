@@ -57,7 +57,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
           initialChain={baseSepolia}
           theme={customTheme}
           avatar={CustomAvatar}
-          showRecentTransactions={true}
         >
           <ErrorSuppressor />
           <ChainGuard />

@@ -50,7 +50,6 @@ export const Header = memo(function Header({
           showBalance={false}
           chainStatus="none"
           accountStatus="address"
-          showRecentTransactions={true}
         />
       </div>
       {isConnected && showEmergencyDisconnect && (
