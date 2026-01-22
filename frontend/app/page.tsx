@@ -59,6 +59,7 @@ export default function Home() {
   const [faucetStatus, setFaucetStatus] = useState('');
   const [faucetTxHash, setFaucetTxHash] = useState<{ eth?: string; usdc?: string }>({});
   const [contractAddressCopied, setContractAddressCopied] = useState(false);
+  const [walletStuck, setWalletStuck] = useState(false);
 
   // Toggle faucet mode body class
   useEffect(() => {
@@ -80,6 +81,73 @@ export default function Home() {
       textarea.style.height = `${textarea.scrollHeight}px`;
     }
   }, [belief]);
+
+  // Detect and handle stuck wallet states on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    // Reset stuck state when disconnected
+    if (!isConnected) {
+      setWalletStuck(false);
+      return;
+    }
+
+    // Check for signs of a stuck wallet state
+    const checkWalletHealth = async () => {
+      if (!isConnected || !address || !walletClient) return;
+
+      try {
+        // Try a simple operation to verify wallet is responsive
+        const chainId = await walletClient.getChainId();
+        
+        // Check if chain ID matches expected
+        if (chainId !== 84532) {
+          console.warn('[Wallet Health Check] Wrong chain detected');
+        }
+        
+        // If we get here, wallet seems OK
+        setWalletStuck(false);
+      } catch (error) {
+        console.error('[Wallet Health Check] Wallet appears stuck:', error);
+        setWalletStuck(true);
+      }
+    };
+
+    // Run health check after a short delay to let everything initialize
+    const timeoutId = setTimeout(checkWalletHealth, 2000);
+
+    return () => clearTimeout(timeoutId);
+  }, [isConnected, address, walletClient]);
+
+  // Add keyboard shortcut for emergency disconnect (Shift+D+D)
+  useEffect(() => {
+    let dKeyPressCount = 0;
+    let resetTimeout: NodeJS.Timeout;
+
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.shiftKey && e.key === 'D') {
+        dKeyPressCount++;
+        
+        clearTimeout(resetTimeout);
+        resetTimeout = setTimeout(() => {
+          dKeyPressCount = 0;
+        }, 1000);
+
+        if (dKeyPressCount === 2) {
+          console.log('[Emergency] Keyboard disconnect triggered');
+          // Trigger emergency disconnect
+          setWalletStuck(true);
+          dKeyPressCount = 0;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+      clearTimeout(resetTimeout);
+    };
+  }, []);
 
   useEffect(() => {
     async function fetchBeliefs() {
@@ -391,7 +459,24 @@ export default function Home() {
     } catch (error: unknown) {
       console.error('Stake error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Stake failed';
-      setStatus(`❌ ${errorMessage}`);
+      
+      // Detect signs of stuck wallet
+      if (errorMessage.includes('user rejected') || 
+          errorMessage.includes('User rejected') ||
+          errorMessage.includes('User denied')) {
+        // User intentionally cancelled - not a stuck wallet
+        setStatus('Transaction cancelled');
+      } else if (errorMessage.includes('network') || 
+                 errorMessage.includes('provider') ||
+                 errorMessage.includes('timeout') ||
+                 errorMessage.includes('connection')) {
+        // Network/provider issues - might be stuck wallet
+        setStatus(`❌ ${errorMessage}. If this persists, use the emergency disconnect (⚠️) button.`);
+        setWalletStuck(true);
+      } else {
+        setStatus(`❌ ${errorMessage}`);
+      }
+      
       setProgress(0);
       setProgressMessage('');
       setLoadingBeliefId(null);
@@ -463,7 +548,24 @@ export default function Home() {
     } catch (error: unknown) {
       console.error('Unstake error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unstake failed';
-      setStatus(`❌ ${errorMessage}`);
+      
+      // Detect signs of stuck wallet
+      if (errorMessage.includes('user rejected') || 
+          errorMessage.includes('User rejected') ||
+          errorMessage.includes('User denied')) {
+        // User intentionally cancelled - not a stuck wallet
+        setStatus('Transaction cancelled');
+      } else if (errorMessage.includes('network') || 
+                 errorMessage.includes('provider') ||
+                 errorMessage.includes('timeout') ||
+                 errorMessage.includes('connection')) {
+        // Network/provider issues - might be stuck wallet
+        setStatus(`❌ ${errorMessage}. If this persists, use the emergency disconnect (⚠️) button.`);
+        setWalletStuck(true);
+      } else {
+        setStatus(`❌ ${errorMessage}`);
+      }
+      
       setProgress(0);
       setProgressMessage('');
       setLoadingBeliefId(null);
@@ -628,7 +730,24 @@ export default function Home() {
     } catch (error: unknown) {
       console.error('Error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
-      setStatus(`❌ ${errorMessage}`);
+      
+      // Detect signs of stuck wallet
+      if (errorMessage.includes('user rejected') || 
+          errorMessage.includes('User rejected') ||
+          errorMessage.includes('User denied')) {
+        // User intentionally cancelled - not a stuck wallet
+        setStatus('Transaction cancelled');
+      } else if (errorMessage.includes('network') || 
+                 errorMessage.includes('provider') ||
+                 errorMessage.includes('timeout') ||
+                 errorMessage.includes('connection')) {
+        // Network/provider issues - might be stuck wallet
+        setStatus(`❌ ${errorMessage}. If this persists, use the emergency disconnect (⚠️) button.`);
+        setWalletStuck(true);
+      } else {
+        setStatus(`❌ ${errorMessage}`);
+      }
+      
       setProgress(0);
       setProgressMessage('');
     } finally {
@@ -641,7 +760,12 @@ export default function Home() {
       <ConnectButton.Custom>
         {({ openConnectModal }) => (
           <>
-            <Header onDollarClick={toggleFaucetModal} isInverted={showFaucetModal} />
+            <Header 
+              onDollarClick={toggleFaucetModal} 
+              isInverted={showFaucetModal} 
+              isConnected={isConnected}
+              showEmergencyDisconnect={walletStuck}
+            />
 
             <div className="page">
               <main className="main">
@@ -721,14 +845,10 @@ export default function Home() {
                 </section>
               ) : (
                 <>
-                <h1 className="headline">
-                  Costly Signals<br />Prove Conviction
-                </h1>
-
                 {!isConnected ? (
                 <section className="hero">
                   <p className="content">
-                    $2 says you mean it. The fact that it costs money to make a claim
+                    <span className="all-caps">Costly signals prove conviction.</span> $2 says you mean it. The fact that it costs money to make a claim
                     shows that it is valuable to you and you&apos;re not just yapping. You have
                     conviction.
                   </p>
@@ -761,7 +881,7 @@ export default function Home() {
               ) : (
           <section className="compose">
             <p className="content">
-              $2 says you mean it. The fact that it costs money to make a claim
+              <span className="all-caps">Costly signals prove conviction.</span> $2 says you mean it. The fact that it costs money to make a claim
               shows that it is valuable to you and you&apos;re not just yapping. You have
               conviction.
             </p>
