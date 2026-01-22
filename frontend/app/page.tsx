@@ -53,7 +53,7 @@ function formatTxHash(hash: string): string {
 }
 
 export default function Home() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chain } = useAccount();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
   const { disconnect } = useDisconnect();
@@ -450,6 +450,12 @@ export default function Home() {
   async function handleStake(attestationUID: string) {
     if (!walletClient || !publicClient || !address) return;
     
+    // Check chain is correctly set
+    if (!chain || chain.id !== baseSepolia.id) {
+      setStatus('⚠️ Please ensure your wallet is connected to Base Sepolia network');
+      return;
+    }
+    
     // Prevent double-staking
     if (userStakes[attestationUID]) {
       setStatus('❌ You have already staked on this belief');
@@ -581,6 +587,12 @@ export default function Home() {
   async function handleUnstake(attestationUID: string) {
     if (!walletClient || !publicClient) return;
     
+    // Check chain is correctly set
+    if (!chain || chain.id !== baseSepolia.id) {
+      setStatus('⚠️ Please ensure your wallet is connected to Base Sepolia network');
+      return;
+    }
+    
     // Prevent unstaking when no stake exists
     if (!userStakes[attestationUID]) {
       setStatus('❌ You do not have an active stake on this belief');
@@ -676,6 +688,13 @@ export default function Home() {
 
   async function handleCreateAndStake() {
     if (!walletClient || !publicClient || !address) return;
+    
+    // Check chain is correctly set
+    if (!chain || chain.id !== baseSepolia.id) {
+      setStatus('⚠️ Please ensure your wallet is connected to Base Sepolia network');
+      return;
+    }
+    
     if (!belief.trim()) {
       setStatus('Please enter a belief');
       return;
