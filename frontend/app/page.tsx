@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { Header } from './Header';
-import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
+import { useAccount, useWalletClient, usePublicClient, useDisconnect } from 'wagmi';
 import { baseSepolia } from 'wagmi/chains';
 import { decodeAbiParameters, encodeAbiParameters } from 'viem';
 import { getBeliefs } from '@/lib/subgraph';
@@ -27,6 +27,7 @@ export default function Home() {
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
+  const { disconnect } = useDisconnect();
 
   const [belief, setBelief] = useState('');
   const [loading, setLoading] = useState(false);
@@ -364,6 +365,22 @@ export default function Home() {
     navigator.clipboard.writeText(CONTRACTS.MOCK_USDC);
     setContractAddressCopied(true);
     setTimeout(() => setContractAddressCopied(false), 2000);
+  }
+
+  function handleForceDisconnect() {
+    console.log('[Force Disconnect] Clearing wallet state...');
+    disconnect();
+    // Clear any stuck states
+    localStorage.removeItem('wagmi.store');
+    localStorage.removeItem('wagmi.recentConnectorId');
+    localStorage.removeItem('wagmi.cache');
+    localStorage.removeItem('wagmi.connected');
+    sessionStorage.clear();
+    
+    // Reload after a tiny delay to ensure disconnect completes
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   }
 
   async function handleStake(attestationUID: string) {
@@ -839,9 +856,24 @@ export default function Home() {
                     <p className="content">In MetaMask: Assets → Import Tokens → Custom Token. Symbol: USDC, Decimals: 6</p>
                   </div>
                   
-                                {faucetStatus && (
-                                  <p className="status">{faucetStatus}</p>
-                                )}
+                  {faucetStatus && (
+                    <p className="status">{faucetStatus}</p>
+                  )}
+                  
+                  {isConnected && (
+                    <p className="content" style={{ marginTop: '3rem', textAlign: 'center' }}>
+                      <a 
+                        href="#" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleForceDisconnect();
+                        }}
+                        className="disconnect-link"
+                      >
+                        Disconnect wallet
+                      </a>
+                    </p>
+                  )}
                 </section>
               ) : (
                 <>

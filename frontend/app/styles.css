@@ -643,6 +643,22 @@ body.faucet-active .status {
   opacity: 0.7;
 }
 
+.disconnect-link {
+  color: var(--color-accent);
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.disconnect-link:hover {
+  text-decoration: underline;
+  opacity: 0.8;
+}
+
+body.faucet-active .disconnect-link {
+  color: var(--color-accent-light);
+}
+
 /* Responsive */
 @media (max-width: 32rem) {
   .page {
