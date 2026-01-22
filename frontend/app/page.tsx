@@ -428,6 +428,13 @@ export default function Home() {
         chain: baseSepolia,
       });
 
+      console.log('[Stake] Approve transaction hash:', approveTx, 'length:', approveTx.length);
+      
+      // Validate transaction hash
+      if (!approveTx || approveTx.length !== 66) {
+        throw new Error(`Invalid approve transaction hash received: ${approveTx} (length: ${approveTx?.length || 0})`);
+      }
+
       await publicClient.waitForTransactionReceipt({ hash: approveTx });
 
       // Step 2: Stake
@@ -443,6 +450,13 @@ export default function Home() {
         chain: baseSepolia,
       });
 
+      console.log('[Stake] Transaction hash:', stakeTx, 'length:', stakeTx.length);
+      
+      // Validate transaction hash
+      if (!stakeTx || stakeTx.length !== 66) {
+        throw new Error(`Invalid transaction hash received: ${stakeTx} (length: ${stakeTx?.length || 0})`);
+      }
+
       await publicClient.waitForTransactionReceipt({ hash: stakeTx });
 
       // Update user stakes state immediately so UI updates
@@ -450,7 +464,7 @@ export default function Home() {
 
       // Poll subgraph to wait for indexing
       setProgress(75);
-      setProgressMessage('Reading transaction from latest block...');
+      setProgressMessage('Reading from onchain data...');
       await new Promise((resolve) => setTimeout(resolve, 2000)); // Let animation play
 
       const maxAttempts = 10;
@@ -528,6 +542,13 @@ export default function Home() {
         chain: baseSepolia,
       });
 
+      console.log('[Unstake] Transaction hash:', unstakeTx, 'length:', unstakeTx.length);
+      
+      // Validate transaction hash
+      if (!unstakeTx || unstakeTx.length !== 66) {
+        throw new Error(`Invalid transaction hash received: ${unstakeTx} (length: ${unstakeTx?.length || 0})`);
+      }
+
       setProgress(75);
       setProgressMessage('Waiting for confirmation...');
       await new Promise((resolve) => setTimeout(resolve, 2000)); // Let animation play
@@ -539,7 +560,7 @@ export default function Home() {
 
       // Poll subgraph to wait for indexing
       setProgress(75);
-      setProgressMessage('Reading transaction from latest block...');
+      setProgressMessage('Reading from onchain data...');
       await new Promise((resolve) => setTimeout(resolve, 2000)); // Let animation play
 
       const maxAttempts = 10;
@@ -649,6 +670,13 @@ export default function Home() {
         chain: baseSepolia,
       });
 
+      console.log('[Create] Attest transaction hash:', attestTx, 'length:', attestTx.length);
+      
+      // Validate transaction hash
+      if (!attestTx || attestTx.length !== 66) {
+        throw new Error(`Invalid attest transaction hash received: ${attestTx} (length: ${attestTx?.length || 0})`);
+      }
+
       setProgress(20);
       setProgressMessage('Confirming attestation...');
 
@@ -679,6 +707,13 @@ export default function Home() {
         chain: baseSepolia,
       });
 
+      console.log('[Create] Approve transaction hash:', approveTx, 'length:', approveTx.length);
+      
+      // Validate transaction hash
+      if (!approveTx || approveTx.length !== 66) {
+        throw new Error(`Invalid approve transaction hash received: ${approveTx} (length: ${approveTx?.length || 0})`);
+      }
+
       setProgress(50);
       setProgressMessage('Confirming approval...');
       await publicClient.waitForTransactionReceipt({
@@ -698,13 +733,20 @@ export default function Home() {
         chain: baseSepolia,
       });
 
+      console.log('[Create+Stake] Stake transaction hash:', stakeTx, 'length:', stakeTx.length);
+      
+      // Validate transaction hash
+      if (!stakeTx || stakeTx.length !== 66) {
+        throw new Error(`Invalid stake transaction hash received: ${stakeTx} (length: ${stakeTx?.length || 0})`);
+      }
+
       setProgress(70);
       setProgressMessage('Confirming stake...');
       await publicClient.waitForTransactionReceipt({ hash: stakeTx });
 
       // Poll subgraph for new belief
       setProgress(90);
-      setProgressMessage('Reading transaction from latest block...');
+      setProgressMessage('Reading from onchain data...');
       setBelief('');
 
       // Poll for the new attestation in subgraph
@@ -879,9 +921,10 @@ export default function Home() {
                 <>
                 {!isConnected ? (
                 <section className="hero">
+                  <h1>Cost Proves<br />Conviction</h1>
                   <p className="content">
-                    <span className="all-caps">Costly signals prove conviction.</span> $2 says you mean it. The fact that it costs money to make a claim
-                    shows that it is valuable to you and you&apos;re not just yapping. You have
+                    $2 says you mean it. The fact that it costs money to stake and record your belief
+                    shows that it is valuable and not just hot air. You have
                     conviction.
                   </p>
 
@@ -890,7 +933,7 @@ export default function Home() {
                       className="belief-textarea"
                       value={belief}
                       onChange={(e) => setBelief(e.target.value)}
-                      placeholder="about..."
+                      placeholder="Make a claim..."
                       maxLength={280}
                     />
                   </div>
@@ -904,17 +947,16 @@ export default function Home() {
 
                   <div className="hero-info">
                     <p className="content">
-                      If you change your mind, unstake and take your money back.
-                      There is no resolution, no reward. Just the fact that you said
-                      it onchain, timestamped, verifiable forever.
+                      Unstake anytime. No resolution, no reward. Just your word, onchain, timestamped, forever.
                     </p>
                   </div>
                 </section>
               ) : (
           <section className="compose">
+            <h1>Cost Proves<br />Conviction</h1>
             <p className="content">
-              <span className="all-caps">Costly signals prove conviction.</span> $2 says you mean it. The fact that it costs money to make a claim
-              shows that it is valuable to you and you&apos;re not just yapping. You have
+              $2 says you mean it. The fact that it costs money to stake and record your belief
+              shows that it is valuable and not just hot air. You have
               conviction.
             </p>
 
@@ -943,7 +985,7 @@ export default function Home() {
                       setBelief(belief + paste.slice(0, remaining));
                     }
                   }}
-                  placeholder="about..."
+                  placeholder="Make a claim..."
                   disabled={loading}
                   rows={1}
                 />
@@ -965,9 +1007,7 @@ export default function Home() {
 
             <div className="compose-info">
               <p className="content">
-                If you change your mind, unstake and take your money back.
-                There is no resolution, no reward. Just the fact that you said
-                it onchain, timestamped, verifiable forever.
+                Unstake anytime. No resolution, no reward. Just your word, onchain, timestamped, forever.
               </p>
             </div>
           </section>

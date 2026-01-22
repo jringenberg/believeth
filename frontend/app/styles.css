@@ -89,6 +89,18 @@ a:hover {
   text-decoration: underline;
 }
 
+/* Headlines */
+h1 {
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 5px;
+  margin-bottom: 2rem;
+  font-family: Times New Roman, Times, serif;
+  font-size: 1.7rem;
+  font-weight: normal;
+  line-height: 1.5;
+}
+
 /* Content text */
 .content {
   margin-top: 1.5rem;
