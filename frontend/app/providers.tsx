@@ -21,13 +21,6 @@ const config = getDefaultConfig({
     [baseSepolia.id]: http('https://sepolia.base.org'),
   },
   ssr: true,
-  // Explicit metadata for WalletConnect
-  metadata: {
-    name: 'Believeth',
-    description: 'Stake beliefs onchain',
-    url: 'https://believeth.xyz',
-    icons: ['https://believeth.xyz/icon.png'],
-  },
 });
 
 const appInfo = {
@@ -74,4 +67,3 @@ export function Providers({ children }: { children: React.ReactNode }) {
     </WagmiProvider>
   );
 }
-
