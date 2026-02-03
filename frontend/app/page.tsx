@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { Header } from './Header';
 import { useAccount, useWalletClient, usePublicClient, useDisconnect } from 'wagmi';
+import { useWeb3Modal } from '@web3modal/wagmi/react';
 import { baseSepolia } from 'wagmi/chains';
 import { decodeAbiParameters, encodeAbiParameters } from 'viem';
 import { getBeliefs, getBeliefStakes } from '@/lib/subgraph';
@@ -57,6 +57,7 @@ export default function Home() {
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
   const { disconnect } = useDisconnect();
+  const { open: openConnectModal } = useWeb3Modal();
 
   const [belief, setBelief] = useState('');
   const [loading, setLoading] = useState(false);
@@ -89,7 +90,6 @@ export default function Home() {
   const [faucetStatus, setFaucetStatus] = useState('');
   const [faucetTxHash, setFaucetTxHash] = useState<{ eth?: string; usdc?: string }>({});
   const [contractAddressCopied, setContractAddressCopied] = useState(false);
-  const [walletStuck, setWalletStuck] = useState(false);
   const [openBeliefDetails, setOpenBeliefDetails] = useState<Record<string, boolean>>({});
   const [beliefStakes, setBeliefStakes] = useState<Record<string, Array<{
     staker: string;
@@ -119,72 +119,7 @@ export default function Home() {
     }
   }, [belief]);
 
-  // Detect and handle stuck wallet states on mount
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    // Reset stuck state when disconnected
-    if (!isConnected) {
-      setWalletStuck(false);
-      return;
-    }
 
-    // Check for signs of a stuck wallet state
-    const checkWalletHealth = async () => {
-      if (!isConnected || !address || !walletClient) return;
-
-      try {
-        // Try a simple operation to verify wallet is responsive
-        const chainId = await walletClient.getChainId();
-        
-        // Check if chain ID matches expected
-        if (chainId !== 84532) {
-          console.warn('[Wallet Health Check] Wrong chain detected');
-        }
-        
-        // If we get here, wallet seems OK
-        setWalletStuck(false);
-      } catch (error) {
-        console.error('[Wallet Health Check] Wallet appears stuck:', error);
-        setWalletStuck(true);
-      }
-    };
-
-    // Run health check after a short delay to let everything initialize
-    const timeoutId = setTimeout(checkWalletHealth, 2000);
-
-    return () => clearTimeout(timeoutId);
-  }, [isConnected, address, walletClient]);
-
-  // Add keyboard shortcut for emergency disconnect (Shift+D+D)
-  useEffect(() => {
-    let dKeyPressCount = 0;
-    let resetTimeout: NodeJS.Timeout;
-
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.shiftKey && e.key === 'D') {
-        dKeyPressCount++;
-        
-        clearTimeout(resetTimeout);
-        resetTimeout = setTimeout(() => {
-          dKeyPressCount = 0;
-        }, 1000);
-
-        if (dKeyPressCount === 2) {
-          console.log('[Emergency] Keyboard disconnect triggered');
-          // Trigger emergency disconnect
-          setWalletStuck(true);
-          dKeyPressCount = 0;
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => {
-      window.removeEventListener('keydown', handleKeyPress);
-      clearTimeout(resetTimeout);
-    };
-  }, []);
 
   useEffect(() => {
     async function fetchBeliefs() {
@@ -336,11 +271,9 @@ export default function Home() {
     checkUserStakes();
   }, [beliefs, address, publicClient]);
 
-  const handleFaucetETH = (openConnectModal?: () => void) => async () => {
+  const handleFaucetETH = async () => {
     if (!address) {
-      if (openConnectModal) {
-        openConnectModal();
-      }
+      openConnectModal();
       return;
     }
 
@@ -369,11 +302,9 @@ export default function Home() {
     }
   };
   
-  const handleFaucetUSDC = (openConnectModal?: () => void) => async () => {
+  const handleFaucetUSDC = async () => {
     if (!walletClient || !address) {
-      if (openConnectModal) {
-        openConnectModal();
-      }
+      openConnectModal();
       return;
     }
     
@@ -418,21 +349,6 @@ export default function Home() {
     setTimeout(() => setContractAddressCopied(false), 2000);
   }
 
-  function handleForceDisconnect() {
-    console.log('[Force Disconnect] Clearing wallet state...');
-    disconnect();
-    // Clear any stuck states
-    localStorage.removeItem('wagmi.store');
-    localStorage.removeItem('wagmi.recentConnectorId');
-    localStorage.removeItem('wagmi.cache');
-    localStorage.removeItem('wagmi.connected');
-    sessionStorage.clear();
-    
-    // Reload after a tiny delay to ensure disconnect completes
-    setTimeout(() => {
-      window.location.reload();
-    }, 100);
-  }
 
   async function toggleBeliefDetails(beliefId: string) {
     const isCurrentlyOpen = openBeliefDetails[beliefId];
@@ -586,9 +502,8 @@ export default function Home() {
                  errorMessage.includes('provider') ||
                  errorMessage.includes('timeout') ||
                  errorMessage.includes('connection')) {
-        // Network/provider issues - might be stuck wallet
-        setStatus(`❌ ${errorMessage}. If this persists, use the emergency disconnect (⚠️) button.`);
-        setWalletStuck(true);
+        // Network/provider issues
+        setStatus(`❌ ${errorMessage}. Try disconnecting and reconnecting your wallet.`);
       } else {
         setStatus(`❌ ${errorMessage}`);
       }
@@ -688,9 +603,8 @@ export default function Home() {
                  errorMessage.includes('provider') ||
                  errorMessage.includes('timeout') ||
                  errorMessage.includes('connection')) {
-        // Network/provider issues - might be stuck wallet
-        setStatus(`❌ ${errorMessage}. If this persists, use the emergency disconnect (⚠️) button.`);
-        setWalletStuck(true);
+        // Network/provider issues
+        setStatus(`❌ ${errorMessage}. Try disconnecting and reconnecting your wallet.`);
       } else {
         setStatus(`❌ ${errorMessage}`);
       }
@@ -702,7 +616,10 @@ export default function Home() {
   }
 
   async function handleCreateAndStake() {
-    if (!walletClient || !publicClient || !address) return;
+    if (!walletClient || !publicClient || !address) {
+      openConnectModal();
+      return;
+    }
     
     // Check chain is correctly set
     if (!chain || chain.id !== baseSepolia.id) {
@@ -898,9 +815,8 @@ export default function Home() {
                  errorMessage.includes('provider') ||
                  errorMessage.includes('timeout') ||
                  errorMessage.includes('connection')) {
-        // Network/provider issues - might be stuck wallet
-        setStatus(`❌ ${errorMessage}. If this persists, use the emergency disconnect (⚠️) button.`);
-        setWalletStuck(true);
+        // Network/provider issues
+        setStatus(`❌ ${errorMessage}. Try disconnecting and reconnecting your wallet.`);
       } else {
         setStatus(`❌ ${errorMessage}`);
       }
@@ -914,15 +830,11 @@ export default function Home() {
 
   return (
     <>
-      <ConnectButton.Custom>
-        {({ openConnectModal }) => (
-          <>
-            <Header 
-              onDollarClick={toggleFaucetModal} 
-              isInverted={showFaucetModal} 
-              isConnected={isConnected}
-              showEmergencyDisconnect={walletStuck}
-            />
+      <Header 
+        onDollarClick={toggleFaucetModal} 
+        isInverted={showFaucetModal} 
+        isConnected={isConnected}
+      />
 
             <div className="page">
               <main className="main">
@@ -937,7 +849,7 @@ export default function Home() {
                     
                     <button 
                       className="btn btn-outline" 
-                      onClick={handleFaucetETH(openConnectModal)}
+                      onClick={handleFaucetETH}
                       disabled={faucetLoading === 'eth' || !!faucetTxHash.eth}
                     >
                       {faucetLoading === 'eth' 
@@ -963,7 +875,7 @@ export default function Home() {
                     
                     <button 
                       className="btn btn-outline" 
-                      onClick={handleFaucetUSDC(openConnectModal)}
+                      onClick={handleFaucetUSDC}
                       disabled={faucetLoading === 'usdc' || !!faucetTxHash.usdc}
                     >
                       {faucetLoading === 'usdc' 
@@ -999,20 +911,6 @@ export default function Home() {
                     <p className="status">{faucetStatus}</p>
                   )}
                   
-                  {isConnected && (
-                    <p className="content" style={{ marginTop: '3rem', textAlign: 'center' }}>
-                      <a 
-                        href="#" 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleForceDisconnect();
-                        }}
-                        className="disconnect-link"
-                      >
-                        Disconnect wallet
-                      </a>
-                    </p>
-                  )}
                 </section>
               ) : (
                 <>
@@ -1035,7 +933,7 @@ export default function Home() {
 
                   <button 
                     className="btn btn-primary btn-disabled-style" 
-                    onClick={openConnectModal}
+                    onClick={() => openConnectModal()}
                   >
                     Attest and Stake $2
                   </button>
@@ -1236,7 +1134,7 @@ export default function Home() {
                         }}
                         disabled={loading}
                       >
-                        Stake $2
+                        {isConnected ? 'Stake $2' : 'Connect'}
                       </button>
                     )}
                   </div>
@@ -1256,9 +1154,6 @@ export default function Home() {
       )}
       </main>
       </div>
-          </>
-        )}
-      </ConnectButton.Custom>
     </>
   );
 }

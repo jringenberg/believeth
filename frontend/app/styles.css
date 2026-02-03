@@ -212,30 +212,6 @@ ul {
   position: relative;
 }
 
-.wallet-button {
-  position: relative;
-  top: 0;
-  right: 0;
-  z-index: 10;
-}
-
-.wallet-button button {
-  font-family: Helvetica, Arial, sans-serif !important;
-  font-size: 1rem !important;
-  text-transform: uppercase !important;
-  font-weight: 400 !important;
-  letter-spacing: 0.05rem !important;
-  box-shadow: none !important;
-}
-
-.wallet-button [data-testid="rk-connect-button"] {
-  font-weight: 400 !important;
-}
-
-.wallet-button [data-testid="rk-account-button"] {
-  font-weight: 400 !important;
-  border: 1px solid var(--color-black) !important;
-}
 
 .emergency-disconnect {
   width: 2.625rem;
@@ -402,8 +378,7 @@ ul {
   line-height: 2.25rem;
 }
 
-/* Wallet Button - Using RainbowKit's theme system */
-/* Theme is configured in providers.tsx with custom colors */
+/* Wallet Button - Custom wagmi-only implementation */
 
 /* Status and Progress */
 .status {
@@ -699,7 +674,7 @@ body.faucet-active .dollar-button {
   color: var(--color-black);
 }
 
-body.faucet-active .wallet-button button {
+body.faucet-active .btn-connect {
   color: var(--color-white) !important;
   border-color: var(--color-white) !important;
 }

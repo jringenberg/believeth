@@ -1,45 +1,43 @@
 'use client';
 
-import { getDefaultConfig, RainbowKitProvider, lightTheme, AvatarComponent } from '@rainbow-me/rainbowkit';
+import { createWeb3Modal } from '@web3modal/wagmi/react';
+import { defaultWagmiConfig } from '@web3modal/wagmi';
 import { WagmiProvider } from 'wagmi';
 import { baseSepolia } from 'wagmi/chains';
-import { http } from 'viem';
-import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
-import { ChainGuard } from './ChainGuard';
-import { ErrorSuppressor } from './ErrorSuppressor';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactNode } from 'react';
 
 const walletConnectProjectId =
   process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ??
   'f663d58e37395d5dad4d6ba0fe9fd134';
 
-// Explicit Base Sepolia configuration with RPC URL
-const config = getDefaultConfig({
-  appName: 'Believeth',
-  projectId: walletConnectProjectId,
-  chains: [baseSepolia],
-  transports: {
-    [baseSepolia.id]: http('https://sepolia.base.org'),
-  },
-  ssr: true,
-});
-
-const appInfo = {
-  appName: 'Believeth',
-  learnMoreUrl: 'https://believeth.xyz',
+// Web3Modal configuration
+const metadata = {
+  name: 'Believeth',
+  description: 'Stake beliefs onchain',
+  url: 'https://extracredible.xyz',
+  icons: ['https://extracredible.xyz/icon.png'],
 };
 
-const customTheme = lightTheme({
-  accentColor: '#002FA7', // Klein Blue (International Klein Blue)
-  accentColorForeground: '#FFF',
-  borderRadius: 'large',
-  overlayBlur: 'small',
-  fontStack: 'system',
+// Create wagmi config using Web3Modal's helper
+const config = defaultWagmiConfig({
+  chains: [baseSepolia],
+  projectId: walletConnectProjectId,
+  metadata,
 });
 
-// Custom avatar that returns null (no avatar)
-const CustomAvatar: AvatarComponent = () => null;
+// Create the Web3Modal instance
+createWeb3Modal({
+  wagmiConfig: config,
+  projectId: walletConnectProjectId,
+  themeMode: 'light',
+  themeVariables: {
+    '--w3m-accent': '#002FA7', // Klein Blue
+    '--w3m-border-radius-master': '0px', // Sharp corners to match your design
+  },
+});
 
-// Create QueryClient outside component to prevent reinitialization on re-renders
+// Create QueryClient outside component
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -48,21 +46,11 @@ const queryClient = new QueryClient({
   },
 });
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({ children }: { children: ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider 
-          appInfo={appInfo} 
-          initialChain={baseSepolia}
-          theme={customTheme}
-          avatar={CustomAvatar}
-          modalSize="compact"
-        >
-          <ErrorSuppressor />
-          <ChainGuard />
-          {children}
-        </RainbowKitProvider>
+        {children}
       </QueryClientProvider>
     </WagmiProvider>
   );

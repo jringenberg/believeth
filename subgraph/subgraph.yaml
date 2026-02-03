@@ -10,7 +10,7 @@ dataSources:
     source:
       address: "0xa37c9A89375134374a866EeD3E57EAF2789d9613"
       abi: BeliefStake
-      startBlock: 36069795
+      startBlock: 36069794
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9
