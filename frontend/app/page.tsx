@@ -865,7 +865,7 @@ export default function Home() {
                 <section className="hero">
                   <h1 className="camelcase">extracredible</h1>
                   <p className="content">
-                    Staking money on a statement makes it more believable. Even $2 proves conviction. Anyone can say anything online, but a costly signal makes it at least a little bit sincere. $2 says you mean it.
+                    Staking money on a statement makes it more believable. Even $2 proves conviction. Anyone can say anything online, but a costly signal carries sincerity. $2 says you mean it.
                   </p>
 
                   <div className="hero-input">
@@ -895,7 +895,7 @@ export default function Home() {
           <section className="compose">
             <h1 className="camelcase">extracredible</h1>
             <p className="content">
-              Staking money on a statement makes it more believable. Even $2 proves conviction. Anyone can say anything online, but a costly signal makes it at least a little bit sincere. $2 says you mean it.
+              Staking money on a statement makes it more believable. Even $2 proves conviction. Anyone can say anything online, but a costly signal carries sincerity. $2 says you mean it.
             </p>
 
             <form
