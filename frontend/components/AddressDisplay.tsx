@@ -3,19 +3,22 @@
 import { useEnsName, useEnsAvatar } from 'wagmi';
 import { mainnet } from 'wagmi/chains';
 import { Address } from 'viem';
+import Link from 'next/link';
 
 interface AddressDisplayProps {
   address: Address | string;
   showAvatar?: boolean;
   truncate?: boolean;
   className?: string;
+  linkToAccount?: boolean;
 }
 
 export function AddressDisplay({ 
   address, 
   showAvatar = false,
   truncate = true,
-  className = ''
+  className = '',
+  linkToAccount = false,
 }: AddressDisplayProps) {
   // Always query from mainnet, regardless of which Base chain we're on
   const { data: ensName } = useEnsName({
@@ -30,12 +33,12 @@ export function AddressDisplay({
 
   const displayName = ensName || (
     truncate 
-      ? `${address.slice(0, 6)}...${address.slice(-4)}`
+      ? `${address.slice(0, 6)}…${address.slice(-4)}`
       : address
   );
 
-  return (
-    <span className={`address-display ${className}`}>
+  const content = (
+    <>
       {showAvatar && ensAvatar && (
         <img 
           src={ensAvatar} 
@@ -51,6 +54,20 @@ export function AddressDisplay({
         />
       )}
       {displayName}
+    </>
+  );
+
+  if (linkToAccount) {
+    return (
+      <Link href={`/account/${address}`} className={`address-link ${className}`}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <span className={`address-display ${className}`}>
+      {content}
     </span>
   );
 }

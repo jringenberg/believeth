@@ -68,13 +68,14 @@ export default function Home() {
   const [beliefs, setBeliefs] = useState<
     Array<{
       id: string;
+      beliefText: string;
+      attester: string;
       totalStaked: string;
       stakerCount: number;
       createdAt: string;
       lastStakedAt: string;
     }>
   >([]);
-  const [beliefTexts, setBeliefTexts] = useState<Record<string, string>>({});
   const [sortOption, setSortOption] = useState<'popular' | 'recent' | 'wallet'>('popular');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [userStakes, setUserStakes] = useState<Record<string, boolean>>({});
@@ -180,62 +181,7 @@ export default function Home() {
     return 0;
   });
 
-  useEffect(() => {
-    async function fetchBeliefTexts() {
-      if (!publicClient || beliefs.length === 0) return;
-
-      // Use a ref check inside the effect instead of dependency array
-      const missingIds = beliefs
-        .map((belief) => belief.id)
-        .filter((id) => !beliefTexts[id]);
-
-      if (missingIds.length === 0) return;
-
-      try {
-        const entries = await Promise.all(
-          missingIds.map(async (id) => {
-            try {
-              const attestation = await publicClient.readContract({
-                address: CONTRACTS.EAS_REGISTRY as `0x${string}`,
-                abi: EAS_ABI,
-                functionName: 'getAttestation',
-                args: [id as `0x${string}`],
-              });
-
-              const data = attestation.data as `0x${string}`;
-              if (!data || data === '0x') {
-                return [id, '[Test stake - no belief text]'] as const;
-              }
-
-              const decoded = decodeAbiParameters(
-                [{ name: 'belief', type: 'string' }],
-                data
-              );
-              const decodedText = decoded[0] ?? '';
-
-              return [
-                id,
-                decodedText || '[Test stake - no belief text]',
-              ] as const;
-            } catch (error) {
-              console.error(`Error fetching belief ${id}:`, error);
-              return [id, '[Test stake - no belief text]'] as const;
-            }
-          })
-        );
-
-        setBeliefTexts((prev) => ({
-          ...prev,
-          ...Object.fromEntries(entries),
-        }));
-      } catch (error) {
-        console.error('Error fetching belief text:', error);
-      }
-    }
-
-    fetchBeliefTexts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [beliefs, publicClient]);
+  // beliefText now comes from subgraph - no need to fetch separately
 
   // Check which beliefs the user has staked on
   useEffect(() => {
@@ -536,10 +482,10 @@ export default function Home() {
     setProgressMessage('Unstaking...');
     
     try {
-      // Ease to 50%
-      await new Promise((resolve) => setTimeout(resolve, 100)); // Small delay for render
+      // Animate from 0% to 50% over 2s
+      await new Promise((resolve) => setTimeout(resolve, 50)); // Small delay for render
       setProgress(50);
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Let animation play
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Let animation complete
 
       const unstakeTx = await walletClient.writeContract({
         address: CONTRACTS.BELIEF_STAKE as `0x${string}`,
@@ -917,9 +863,9 @@ export default function Home() {
                 <>
                 {!isConnected ? (
                 <section className="hero">
-                  <h1 className="allcaps">Cost adds credibility</h1>
+                  <h1 className="camelcase">extracredible</h1>
                   <p className="content">
-                    Staking $2 on a statement says you mean it. Locking up even a little money over time is a costly signal, which adds credibility to what you say. Holding positions over time is proof of conviction.
+                    Staking money on a statement makes it more believable. This costly signal proves conviction, even just a little bit, which is more than you can say about anything else you read online. $2 says you mean it.
                   </p>
 
                   <div className="hero-input">
@@ -927,7 +873,7 @@ export default function Home() {
                       className="belief-textarea"
                       value={belief}
                       onChange={(e) => setBelief(e.target.value)}
-                      placeholder="Claim, predict, declare..."
+                      placeholder="State your claim, prediction, commitment, belief..."
                       maxLength={280}
                     />
                   </div>
@@ -947,9 +893,9 @@ export default function Home() {
                 </section>
               ) : (
           <section className="compose">
-            <h1 className="allcaps">Cost adds credibility</h1>
+            <h1 className="camelcase">extracredible</h1>
             <p className="content">
-              Staking $2 on a statement says you mean it. Locking up even a little money over time is a costly signal, which adds credibility to what you say. Holding positions over time is proof of conviction.
+              Staking money on a statement makes it more believable. This costly signal proves conviction, even just a little bit, which is more than you can say about anything else you read online. $2 says you mean it.
             </p>
 
             <form
@@ -977,7 +923,7 @@ export default function Home() {
                       setBelief(belief + paste.slice(0, remaining));
                     }
                   }}
-                  placeholder="Claim, predict, declare..."
+                  placeholder="State your claim, prediction, commitment, belief..."
                   disabled={loading}
                   rows={1}
                 />
@@ -1044,8 +990,7 @@ export default function Home() {
             {displayedBeliefs.map((beliefItem) => {
               const totalStaked = BigInt(beliefItem.totalStaked || '0');
               const dollars = Number(totalStaked) / 1_000_000;
-              const text =
-                beliefTexts[beliefItem.id] || '[Test stake - no belief text]';
+              const text = beliefItem.beliefText || '[No belief text]';
               const hasStaked = userStakes[beliefItem.id] || false;
 
               const isLoading = loadingBeliefId === beliefItem.id;

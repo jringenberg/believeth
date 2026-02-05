@@ -4,11 +4,12 @@ import {
   Unstaked as UnstakedEvent
 } from "../generated/BeliefStake/BeliefStake"
 import { Belief, Stake } from "../generated/schema"
-import { Bytes } from "@graphprotocol/graph-ts"
+import { Address } from "@graphprotocol/graph-ts"
 
 export function handleOwnershipTransferred(
   event: OwnershipTransferredEvent
 ): void {
+  // No-op, but required by the ABI
 }
 
 export function handleStaked(event: StakedEvent): void {
@@ -20,12 +21,15 @@ export function handleStaked(event: StakedEvent): void {
   if (belief == null) {
     belief = new Belief(beliefId)
     belief.beliefText = "" // Will be filled by EAS handler when it processes
+    belief.attester = Address.zero() // Placeholder, will be filled by EAS handler
     belief.totalStaked = event.params.amount
     belief.stakerCount = 1
     belief.createdAt = event.params.timestamp
+    belief.lastStakedAt = event.params.timestamp
   } else {
     belief.totalStaked = belief.totalStaked.plus(event.params.amount)
     belief.stakerCount = belief.stakerCount + 1
+    belief.lastStakedAt = event.params.timestamp
   }
 
   let stakeId = beliefId.toHexString() + "-" + event.params.staker.toHexString()

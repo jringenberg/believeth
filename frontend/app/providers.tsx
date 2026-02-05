@@ -39,6 +39,7 @@ createWeb3Modal({
   themeVariables: {
     '--w3m-accent': '#002FA7', // Klein Blue
     '--w3m-border-radius-master': '0px', // Sharp corners to match your design
+    '--w3m-font-family': 'Helvetica, Arial, sans-serif', // Use our fonts, not Reown's
   },
 });
 

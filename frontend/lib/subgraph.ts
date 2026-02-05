@@ -1,84 +1,210 @@
-import { GraphQLClient, gql } from 'graphql-request';
+const SUBGRAPH_URL = process.env.NEXT_PUBLIC_SUBGRAPH_URL || '';
 
-type Belief = {
+export type Belief = {
   id: string;
+  beliefText: string;
+  attester: string;
   totalStaked: string;
   stakerCount: number;
   createdAt: string;
   lastStakedAt: string;
-  stakes: Array<{
-    stakedAt: string;
-    active: boolean;
-  }>;
 };
 
-const beliefsQuery = gql`
-  query GetBeliefs {
-    beliefs(first: 1000, orderBy: totalStaked, orderDirection: desc) {
-      id
-      totalStaked
-      stakerCount
-      createdAt
-      stakes(where: { active: true }, orderBy: stakedAt, orderDirection: desc, first: 1) {
-        stakedAt
-        active
-      }
-    }
-  }
-`;
-
-const beliefStakesQuery = gql`
-  query GetBeliefStakes($beliefId: ID!) {
-    belief(id: $beliefId) {
-      id
-      stakes(where: { active: true }, orderBy: stakedAt, orderDirection: desc) {
-        id
-        staker
-        amount
-        stakedAt
-        transactionHash
-        active
-      }
-    }
-  }
-`;
-
-export async function getBeliefs(): Promise<Belief[]> {
-  const endpoint = process.env.NEXT_PUBLIC_SUBGRAPH_URL;
-  if (!endpoint) {
-    throw new Error('NEXT_PUBLIC_SUBGRAPH_URL is not set');
-  }
-
-  const client = new GraphQLClient(endpoint);
-  const data = await client.request<{ beliefs: Belief[] }>(beliefsQuery);
-
-  // Calculate lastStakedAt from the most recent active stake
-  return data.beliefs.map((belief) => ({
-    ...belief,
-    lastStakedAt: belief.stakes[0]?.stakedAt || belief.createdAt,
-  }));
-}
-
-export type BeliefStake = {
+export type Stake = {
   id: string;
   staker: string;
   amount: string;
   stakedAt: string;
-  transactionHash: string;
+  unstakedAt: string | null;
   active: boolean;
+  transactionHash: string;
+  belief?: Belief;
 };
 
-export async function getBeliefStakes(beliefId: string): Promise<BeliefStake[]> {
-  const endpoint = process.env.NEXT_PUBLIC_SUBGRAPH_URL;
-  if (!endpoint) {
-    throw new Error('NEXT_PUBLIC_SUBGRAPH_URL is not set');
+/**
+ * Fetch all beliefs, sorted by total staked (descending)
+ */
+export async function getBeliefs(): Promise<Belief[]> {
+  if (!SUBGRAPH_URL) {
+    console.warn('SUBGRAPH_URL not configured');
+    return [];
   }
 
-  const client = new GraphQLClient(endpoint);
-  const data = await client.request<{ belief: { stakes: BeliefStake[] } }>(
-    beliefStakesQuery,
-    { beliefId }
-  );
+  const query = `
+    query GetBeliefs {
+      beliefs(first: 100, orderBy: totalStaked, orderDirection: desc) {
+        id
+        beliefText
+        attester
+        totalStaked
+        stakerCount
+        createdAt
+        lastStakedAt
+      }
+    }
+  `;
 
-  return data.belief?.stakes || [];
+  try {
+    const response = await fetch(SUBGRAPH_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+    });
+
+    const json = await response.json();
+    
+    if (json.errors) {
+      console.error('Subgraph errors:', json.errors);
+      return [];
+    }
+
+    return json.data?.beliefs || [];
+  } catch (error) {
+    console.error('Error fetching beliefs:', error);
+    return [];
+  }
+}
+
+/**
+ * Fetch a single belief by its attestation UID
+ */
+export async function getBelief(uid: string): Promise<Belief | null> {
+  if (!SUBGRAPH_URL) {
+    console.warn('SUBGRAPH_URL not configured');
+    return null;
+  }
+
+  const query = `
+    query GetBelief($id: ID!) {
+      belief(id: $id) {
+        id
+        beliefText
+        attester
+        totalStaked
+        stakerCount
+        createdAt
+        lastStakedAt
+      }
+    }
+  `;
+
+  try {
+    const response = await fetch(SUBGRAPH_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, variables: { id: uid } }),
+    });
+
+    const json = await response.json();
+    
+    if (json.errors) {
+      console.error('Subgraph errors:', json.errors);
+      return null;
+    }
+
+    return json.data?.belief || null;
+  } catch (error) {
+    console.error('Error fetching belief:', error);
+    return null;
+  }
+}
+
+/**
+ * Fetch all stakes for a specific belief
+ */
+export async function getBeliefStakes(beliefId: string): Promise<Stake[]> {
+  if (!SUBGRAPH_URL) {
+    console.warn('SUBGRAPH_URL not configured');
+    return [];
+  }
+
+  const query = `
+    query GetBeliefStakes($beliefId: String!) {
+      stakes(where: { belief: $beliefId }, orderBy: stakedAt, orderDirection: desc) {
+        id
+        staker
+        amount
+        stakedAt
+        unstakedAt
+        active
+        transactionHash
+      }
+    }
+  `;
+
+  try {
+    const response = await fetch(SUBGRAPH_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, variables: { beliefId } }),
+    });
+
+    const json = await response.json();
+    
+    if (json.errors) {
+      console.error('Subgraph errors:', json.errors);
+      return [];
+    }
+
+    return json.data?.stakes || [];
+  } catch (error) {
+    console.error('Error fetching belief stakes:', error);
+    return [];
+  }
+}
+
+/**
+ * Fetch all active stakes for a specific address (for account page)
+ */
+export async function getAccountStakes(address: string): Promise<(Stake & { belief: Belief })[]> {
+  if (!SUBGRAPH_URL) {
+    console.warn('SUBGRAPH_URL not configured');
+    return [];
+  }
+
+  // Normalize address to lowercase for subgraph query
+  const normalizedAddress = address.toLowerCase();
+
+  const query = `
+    query GetAccountStakes($staker: Bytes!) {
+      stakes(where: { staker: $staker, active: true }, orderBy: stakedAt, orderDirection: desc) {
+        id
+        staker
+        amount
+        stakedAt
+        unstakedAt
+        active
+        transactionHash
+        belief {
+          id
+          beliefText
+          attester
+          totalStaked
+          stakerCount
+          createdAt
+          lastStakedAt
+        }
+      }
+    }
+  `;
+
+  try {
+    const response = await fetch(SUBGRAPH_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, variables: { staker: normalizedAddress } }),
+    });
+
+    const json = await response.json();
+    
+    if (json.errors) {
+      console.error('Subgraph errors:', json.errors);
+      return [];
+    }
+
+    return json.data?.stakes || [];
+  } catch (error) {
+    console.error('Error fetching account stakes:', error);
+    return [];
+  }
 }

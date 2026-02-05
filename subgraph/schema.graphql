@@ -1,16 +1,18 @@
 type Belief @entity(immutable: false) {
   id: Bytes! # attestation UID
   beliefText: String! # The actual belief statement from EAS
+  attester: Bytes! # Address that created the attestation
   totalStaked: BigInt!
   stakerCount: Int!
   createdAt: BigInt!
+  lastStakedAt: BigInt! # When the most recent stake was added
   stakes: [Stake!]! @derivedFrom(field: "belief")
 }
 
 type Stake @entity(immutable: false) {
   id: ID! # attestationUID-stakerAddress
   belief: Belief!
-  staker: Bytes!
+  staker: Bytes! @index # Indexed for efficient queries by staker address
   amount: BigInt!
   stakedAt: BigInt!
   unstakedAt: BigInt # null if still active
