@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Header } from './Header';
-import { useAccount, useWalletClient, usePublicClient, useDisconnect, useSwitchChain } from 'wagmi';
+import { useAccount, useWalletClient, useDisconnect, useSwitchChain } from 'wagmi';
 import { usePrivy } from '@privy-io/react-auth';
 import { baseSepolia } from 'wagmi/chains';
 import { decodeAbiParameters, encodeAbiParameters } from 'viem';
+import { publicClient } from '@/lib/client';
 import { getBeliefs, getBeliefStakes } from '@/lib/subgraph';
 import { ProgressBar } from './ProgressBar';
 import { AddressDisplay } from '@/components/AddressDisplay';
@@ -81,7 +82,6 @@ function friendlyError(error: unknown): string {
 export default function Home() {
   const { address, isConnected, chain } = useAccount();
   const { data: walletClient } = useWalletClient({ chainId: baseSepolia.id });
-  const publicClient = usePublicClient({ chainId: baseSepolia.id });
   const { disconnect } = useDisconnect();
   const { switchChain } = useSwitchChain();
   const { login: openConnectModal } = usePrivy();
@@ -219,7 +219,7 @@ export default function Home() {
   // Check which beliefs the user has staked on
   useEffect(() => {
     async function checkUserStakes() {
-      if (!publicClient || !address || beliefs.length === 0) return;
+      if (!address || beliefs.length === 0) return;
 
       try {
         const stakeChecks = await Promise.all(
@@ -249,7 +249,7 @@ export default function Home() {
     }
 
     checkUserStakes();
-  }, [beliefs, address, publicClient]);
+  }, [beliefs, address]);
 
   const handleFaucetETH = async () => {
     if (!address) {
@@ -311,7 +311,7 @@ export default function Home() {
         chain: baseSepolia,
       });
 
-      await publicClient?.waitForTransactionReceipt({ hash: mintTx });
+      await publicClient.waitForTransactionReceipt({ hash: mintTx });
       
       setFaucetTxHash((prev) => ({ ...prev, usdc: mintTx }));
     } catch (error: unknown) {
@@ -362,7 +362,7 @@ export default function Home() {
       openConnectModal();
       return;
     }
-    if (!walletClient || !publicClient) {
+    if (!walletClient) {
       if (!chain || chain.id !== baseSepolia.id) {
         switchChain({ chainId: baseSepolia.id });
         setStatus('⚠️ Switching to Base Sepolia — please try again.');
@@ -483,7 +483,7 @@ export default function Home() {
   }
 
   async function handleUnstake(attestationUID: string) {
-    if (!walletClient || !publicClient) {
+    if (!walletClient) {
       if (!chain || chain.id !== baseSepolia.id) {
         switchChain({ chainId: baseSepolia.id });
         setStatus('⚠️ Switching to Base Sepolia — please try again.');
@@ -573,7 +573,7 @@ export default function Home() {
       openConnectModal();
       return;
     }
-    if (!walletClient || !publicClient) {
+    if (!walletClient) {
       if (!chain || chain.id !== baseSepolia.id) {
         switchChain({ chainId: baseSepolia.id });
         setStatus('⚠️ Switching to Base Sepolia — please try again.');
