@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Header } from './Header';
-import { useAccount, useWalletClient, useDisconnect, useSwitchChain } from 'wagmi';
+import { useAccount, useWalletClient, useSwitchChain } from 'wagmi';
 import { usePrivy } from '@privy-io/react-auth';
 import { baseSepolia } from 'wagmi/chains';
 import { decodeAbiParameters, encodeAbiParameters } from 'viem';
@@ -12,7 +12,6 @@ import { ProgressBar } from './ProgressBar';
 import { AddressDisplay } from '@/components/AddressDisplay';
 import {
   CONTRACTS,
-  EAS_ABI,
   EAS_WRITE_ABI,
   BELIEF_STAKE_ABI,
   BELIEF_STAKE_WRITE_ABI,
@@ -82,7 +81,6 @@ function friendlyError(error: unknown): string {
 export default function Home() {
   const { address, isConnected, chain } = useAccount();
   const { data: walletClient } = useWalletClient({ chainId: baseSepolia.id });
-  const { disconnect } = useDisconnect();
   const { switchChain } = useSwitchChain();
   const { login: openConnectModal } = usePrivy();
 

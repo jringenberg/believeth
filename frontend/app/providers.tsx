@@ -6,13 +6,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http } from 'wagmi';
 import { baseSepolia, mainnet } from 'viem/chains';
 import { ReactNode } from 'react';
+import { BASE_SEPOLIA_RPC } from '@/lib/contracts';
 
 // Privy wagmi config
 // Import createConfig from @privy-io/wagmi, NOT from wagmi directly
 const wagmiConfig = createConfig({
   chains: [baseSepolia, mainnet],
   transports: {
-    [baseSepolia.id]: http('https://sepolia.base.org'),
+    [baseSepolia.id]: http(BASE_SEPOLIA_RPC),
     [mainnet.id]: http(), // Public RPC for ENS lookups
   },
 });

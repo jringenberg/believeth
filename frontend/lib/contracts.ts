@@ -8,34 +8,6 @@ export const CONTRACTS = {
 
 export const BASE_SEPOLIA_RPC = 'https://sepolia.base.org';
 
-// Minimal EAS ABI - just getAttestation
-export const EAS_ABI = [
-  {
-    inputs: [{ name: 'uid', type: 'bytes32' }],
-    name: 'getAttestation',
-    outputs: [
-      {
-        components: [
-          { name: 'uid', type: 'bytes32' },
-          { name: 'schema', type: 'bytes32' },
-          { name: 'time', type: 'uint64' },
-          { name: 'expirationTime', type: 'uint64' },
-          { name: 'revocationTime', type: 'uint64' },
-          { name: 'refUID', type: 'bytes32' },
-          { name: 'recipient', type: 'address' },
-          { name: 'attester', type: 'address' },
-          { name: 'revocable', type: 'bool' },
-          { name: 'data', type: 'bytes' },
-        ],
-        name: 'attestation',
-        type: 'tuple',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-] as const;
-
 // BeliefStake ABI - read functions
 export const BELIEF_STAKE_ABI = [
   {
@@ -60,11 +32,7 @@ export const BELIEF_STAKE_ABI = [
   },
 ] as const;
 
-// Genesis belief for testing
-export const GENESIS_BELIEF_UID =
-  '0x52314b57ebbe83ebe00c02aa3a74df3cf1a55acd682318f7d88777945aa5c1dd';
-
-// Full EAS ABI for attest function
+// EAS ABI for attest function
 export const EAS_WRITE_ABI = [
   {
     inputs: [
@@ -134,20 +102,5 @@ export const ERC20_ABI = [
   },
 ] as const;
 
-// MockUSDC mint function
-export const MOCK_USDC_ABI = [
-  {
-    inputs: [
-      { name: 'to', type: 'address' },
-      { name: 'amount', type: 'uint256' },
-    ],
-    name: 'mint',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-] as const;
-
 export const STAKE_AMOUNT = 2_000_000n; // $2 USDC (6 decimals)
-export const MINT_AMOUNT = 20_000_000n; // $20 USDC for testing
 
