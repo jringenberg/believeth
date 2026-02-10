@@ -231,27 +231,32 @@ ul {
 
 /* Two-column layout */
 .two-col {
-  display: flex;
-  gap: 4rem;
-  padding-left: 4.625rem;
+  display: grid;
+  grid-template-columns: 1fr 22rem 1fr;
+  align-items: start;
+  width: 100%;
 }
 
 .two-col .col-left {
-  flex: 0 0 22rem;
+  grid-column: 1;
+  width: 22rem;
+  justify-self: center;
   color: var(--color-black);
 }
 
 .two-col .col-right {
-  flex: 0 0 22rem;
+  grid-column: 2;
+  width: 22rem;
   min-width: 0;
 }
 
-/* Pin the left column so it never scrolls */
+/* Left column is fixed while beliefs scroll */
 .col-left-fixed {
   position: fixed;
   top: 1rem;
-  left: 4.625rem;
+  left: calc((50vw - 33rem) / 2);
   width: 22rem;
+  z-index: 40;
 }
 
 /* Pin the right column header so beliefs scroll behind it */
@@ -274,7 +279,7 @@ ul {
   color: var(--color-black);
 }
 
-@media (max-width: 48rem) {
+@media (max-width: 64rem) {
   .nav-left {
     left: 0.5rem;
   }
@@ -286,34 +291,43 @@ ul {
   }
 
   .two-col {
+    display: flex;
     flex-direction: column;
     gap: 2rem;
-    padding-left: 1rem;
-    padding-right: 1rem;
+    padding: 0 1rem;
     align-items: center;
   }
 
   .two-col .col-left {
-    flex: 0 0 auto;
     width: 100%;
-    max-width: 20rem;
+    max-width: 22rem;
+    justify-self: auto;
   }
 
+  /* Mobile collapsed create column: title row only */
   .col-left-fixed {
     position: static;
     left: auto;
     width: 100%;
   }
 
+  .col-left .hero,
+  .col-left .compose {
+    display: none;
+  }
+
+  .col-left .col-title {
+    margin-bottom: 0;
+  }
+
   .two-col .col-right {
-    flex: 0 0 auto;
     width: 100%;
     max-width: 22rem;
   }
 
   .col-right-header {
     position: static;
-    padding: 0;
+    padding: 0 0 1rem 0;
   }
 }
 
@@ -534,7 +548,7 @@ ul {
 /* Sort header */
 .sort-header {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: flex-start;
   gap: 0.5rem;
   height: 2.625rem;
@@ -542,11 +556,14 @@ ul {
 
 .sort-header .col-title {
   margin-bottom: 0;
+  line-height: 2.625rem;
 }
 
 .sort-controls {
   position: relative;
   display: inline-flex;
+  height: 2.625rem;
+  align-items: center;
 }
 
 .sort-trigger {
@@ -793,6 +810,8 @@ body.faucet-active .dollar-button {
   letter-spacing: 0.05em;
   cursor: pointer;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
 }
 
 body.faucet-active .btn-connect {
