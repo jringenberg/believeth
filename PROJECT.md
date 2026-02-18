@@ -1,4 +1,4 @@
-# Believeth
+# Extracredible
 
 ## Core Concept
 
@@ -14,7 +14,7 @@ A protocol where users stake cryptocurrency on belief statements to create publi
 **Tests:** Foundry tests passing for `BeliefStake.sol`
 **Frontend:** Complete UI with create, stake, unstake, three sort modes (Popular/Recent/Wallet), progress indicators
 **Subgraph:** Deployed and indexing on The Graph Studio with stake activity tracking
-**Production:** Live at believeth.xyz and legitify.xyz
+**Production:** Live at extracredible.xyz and legitify.xyz
 **Next:** Build account pages (`/account/[address]`) and belief detail pages (`/belief/[uid]`)
 
 ## Technical Architecture
@@ -73,11 +73,11 @@ User stakes $2 → BeliefStake receives USDC → Deposits to Aave → Tracks aUS
 - **All yield to protocol**: No user yield-sharing, pure treasury revenue model
 - **Primary signal is staker count**: Total stake is secondary - 847 people matters more than total dollars
 - **No belief-gating of data**: Everything on-chain is public, gate participation not viewing
-- **"Believeth" as name**: Archaic/Biblical form of "believe" - suggests conviction, testimony, putting your beliefs on record
+- **"Extracredible" as name**: Archaic/Biblical form of "believe" - suggests conviction, testimony, putting your beliefs on record
 
 ### Naming & Copy
 
-- **Brand:** Believeth (believeth.xyz)
+- **Brand:** Extracredible (extracredible.xyz)
 - **Main feed:** "Popular Beliefs" (not repeated elsewhere)
 - **Action verbs:** "Back This" / "Co-Sign" (not "stake" in UI)
 - **Tagline direction:** "Put your money where your beliefs are" / "Words are cheap. Prove what you believe."
@@ -137,7 +137,7 @@ $2 stake is 10-20x larger than gas costs - gas not a barrier.
 - [x] Input field + "+$2" button
 - [x] Create belief flow works end-to-end
 - [x] Chrome extension error suppression added
-- [x] Vercel production deployment with custom domains (believeth.xyz, legitify.xyz)
+- [x] Vercel production deployment with custom domains (extracredible.xyz, legitify.xyz)
 
 **Indexing:**
 
@@ -220,7 +220,7 @@ $2 stake is 10-20x larger than gas costs - gas not a barrier.
    - ReentrancyGuard and access controls verified
 
 4. **Mainnet Subgraph** - Deploy subgraph to index Base mainnet
-   - Frontend already deployed to production (believeth.xyz)
+   - Frontend already deployed to production (extracredible.xyz)
 
 5. **Gas Cost Testing** - Verify costs acceptable on mainnet
    - Current estimates: ~$0.15-0.25 for create+stake
@@ -250,7 +250,7 @@ $2 stake is 10-20x larger than gas costs - gas not a barrier.
 - Subgraph queries: Beliefs with stakes, staker counts, timestamps
 
 **Production URLs:**
-- Primary: https://believeth.xyz
+- Primary: https://extracredible.xyz
 - Alt domain: https://legitify.xyz
 - Vercel deployment: believes-d88dc1v71-jringenbergs-projects.vercel.app
 
@@ -286,7 +286,7 @@ ETH_RPC_URL=https://sepolia.base.org
 
 **Session 2 (January 9, 2026):**
 
-- Explored naming, decided on believeth.xyz (runner-up: publicbelief.xyz)
+- Explored naming, decided on extracredible.xyz (runner-up: publicbelief.xyz)
 - Removed conviction score from schema - friction kills momentum, stake itself is the confidence signal
 - Clarified core thesis: beliefs are constraint commitments made coordinable through cost
 - Next: Set up Next.js frontend scaffold, write contract tests
@@ -326,7 +326,7 @@ ETH_RPC_URL=https://sepolia.base.org
 - Fixed noisy Chrome extension errors with global error suppression
 - Confirmed end-to-end flow working: create belief → stake $2 → appears in subgraph
 - Verified subgraph deployed and indexing on The Graph Studio
-- Confirmed production deployment live at believeth.xyz and legitify.xyz
+- Confirmed production deployment live at extracredible.xyz and legitify.xyz
 - Assessed current state: testnet MVP complete, ready for feature expansion
 - Documented core product conviction: $2 is CAPTCHA not signal amplifier
 - Added binary stake rule: one $2 per user per belief, no multiple stakes
@@ -490,7 +490,7 @@ ETH_RPC_URL=https://sepolia.base.org
 ## Repository Structure
 
 ```text
-believeth/
+extracredible/
 ├── PROJECT.md              # This file - single source of truth
 ├── README.md               # Public-facing documentation
 ├── contracts/              # Smart contracts

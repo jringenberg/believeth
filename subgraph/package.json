@@ -1,13 +1,13 @@
 {
-  "name": "believeth",
+  "name": "extracredible",
   "license": "UNLICENSED",
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ believeth",
-    "create-local": "graph create --node http://localhost:8020/ believeth",
-    "remove-local": "graph remove --node http://localhost:8020/ believeth",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 believeth",
+    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ extracredible",
+    "create-local": "graph create --node http://localhost:8020/ extracredible",
+    "remove-local": "graph remove --node http://localhost:8020/ extracredible",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 extracredible",
     "test": "graph test"
   },
   "dependencies": {

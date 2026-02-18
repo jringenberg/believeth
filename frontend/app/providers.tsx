@@ -4,16 +4,14 @@ import { PrivyProvider } from '@privy-io/react-auth';
 import { WagmiProvider, createConfig } from '@privy-io/wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http } from 'wagmi';
-import { baseSepolia, mainnet } from 'viem/chains';
+import { base, mainnet } from 'viem/chains';
 import { ReactNode } from 'react';
-import { BASE_SEPOLIA_RPC } from '@/lib/contracts';
+import { BASE_RPC } from '@/lib/contracts';
 
-// Privy wagmi config
-// Import createConfig from @privy-io/wagmi, NOT from wagmi directly
 const wagmiConfig = createConfig({
-  chains: [baseSepolia, mainnet],
+  chains: [base, mainnet],
   transports: {
-    [baseSepolia.id]: http(BASE_SEPOLIA_RPC),
+    [base.id]: http(BASE_RPC),
     [mainnet.id]: http(), // Public RPC for ENS lookups
   },
 });
@@ -38,8 +36,8 @@ export function Providers({ children }: { children: ReactNode }) {
           accentColor: '#002FA7', // Klein Blue
         },
         loginMethods: ['wallet'],
-        supportedChains: [baseSepolia],
-        defaultChain: baseSepolia,
+        supportedChains: [base],
+        defaultChain: base,
       }}
     >
       <QueryClientProvider client={queryClient}>

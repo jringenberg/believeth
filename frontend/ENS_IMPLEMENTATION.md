@@ -2,13 +2,13 @@
 
 ## Overview
 
-Successfully implemented ENS (Ethereum Name Service) resolution for Believeth, which runs on Base Sepolia testnet. This allows displaying user-friendly ENS names (like `vitalik.eth`) instead of hex addresses, even though ENS doesn't exist on Base chains.
+Successfully implemented ENS (Ethereum Name Service) resolution for Extracredible, which runs on Base. This allows displaying user-friendly ENS names (like `vitalik.eth`) instead of hex addresses, even though ENS doesn't exist on Base chains.
 
 ## The Challenge
 
-- **Problem:** Believeth runs on Base Sepolia (L2), but ENS only exists on Ethereum L1
+- **Problem:** Extracredible runs on Base (L2), but ENS only exists on Ethereum L1
 - **Key insight:** Wallet addresses are identical across all EVM chains
-- **Solution:** Query ENS from Ethereum mainnet while transactions happen on Base Sepolia
+- **Solution:** Query ENS from Ethereum mainnet while transactions happen on Base
 
 ## Smart Strategy: Always Use Mainnet ENS
 

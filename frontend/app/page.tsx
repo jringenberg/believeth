@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { ConnectButton } from './ConnectButton';
 import { useAccount, useWalletClient, useSwitchChain } from 'wagmi';
 import { usePrivy } from '@privy-io/react-auth';
-import { baseSepolia } from 'wagmi/chains';
+import { base } from 'wagmi/chains';
 import { decodeAbiParameters, encodeAbiParameters } from 'viem';
 import { publicClient } from '@/lib/client';
 import { getBeliefs, getBeliefStakes, getAccountStakes, getBelief } from '@/lib/subgraph';
@@ -64,7 +64,7 @@ function friendlyError(error: unknown): string {
     return 'Transaction cancelled.';
   }
   if (msg.includes('Cannot decode zero data') || msg.includes('returned no data')) {
-    return 'Contract not available — please make sure your wallet is on Base Sepolia.';
+    return 'Contract not available — please make sure your wallet is on Base.';
   }
   if (msg.includes('Insufficient') || msg.includes('insufficient funds')) {
     return 'Insufficient funds for gas. Use the "$" button to get testnet ETH.';
@@ -73,7 +73,7 @@ function friendlyError(error: unknown): string {
     return 'Network error. Try disconnecting and reconnecting your wallet.';
   }
   if (msg.includes('chain') || msg.includes('Chain')) {
-    return 'Wrong network — please switch to Base Sepolia.';
+    return 'Wrong network — please switch to Base.';
   }
 
   // Truncate raw errors so users don't see a wall of text
@@ -90,14 +90,14 @@ export interface HomeContentProps {
 
 export function HomeContent({ initialSort = 'popular', filterValue }: HomeContentProps) {
   const { address, isConnected, chain } = useAccount();
-  const { data: walletClient } = useWalletClient({ chainId: baseSepolia.id });
+  const { data: walletClient } = useWalletClient({ chainId: base.id });
   const { switchChain } = useSwitchChain();
   const { login: openConnectModal } = usePrivy();
 
-  // Auto-switch to Base Sepolia when connected on wrong chain
+  // Auto-switch to Base when connected on wrong chain
   useEffect(() => {
-    if (isConnected && chain && chain.id !== baseSepolia.id) {
-      switchChain({ chainId: baseSepolia.id });
+    if (isConnected && chain && chain.id !== base.id) {
+      switchChain({ chainId: base.id });
     }
   }, [isConnected, chain, switchChain]);
 
@@ -315,7 +315,7 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
     
     try {
       const mintTx = await walletClient.writeContract({
-        address: CONTRACTS.MOCK_USDC as `0x${string}`,
+        address: CONTRACTS.USDC as `0x${string}`,
         abi: [
           {
             inputs: [
@@ -330,7 +330,7 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
         ],
         functionName: 'mint',
         args: [address, 20000000n], // 20 USDC
-        chain: baseSepolia,
+        chain: base,
       });
 
       await publicClient.waitForTransactionReceipt({ hash: mintTx });
@@ -345,7 +345,7 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
   };
 
   function handleCopyContractAddress() {
-    navigator.clipboard.writeText(CONTRACTS.MOCK_USDC);
+    navigator.clipboard.writeText(CONTRACTS.USDC);
     setContractAddressCopied(true);
     setTimeout(() => setContractAddressCopied(false), 2000);
   }
@@ -385,9 +385,9 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
       return;
     }
     if (!walletClient) {
-      if (!chain || chain.id !== baseSepolia.id) {
-        switchChain({ chainId: baseSepolia.id });
-        setStatus('⚠️ Switching to Base Sepolia — please try again.');
+      if (!chain || chain.id !== base.id) {
+        switchChain({ chainId: base.id });
+        setStatus('⚠️ Switching to Base — please try again.');
       } else {
         setStatus('⚠️ Wallet is connecting, please try again in a moment.');
       }
@@ -408,7 +408,7 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
     try {
       // Check USDC balance first
       const balance = await publicClient.readContract({
-        address: CONTRACTS.MOCK_USDC as `0x${string}`,
+        address: CONTRACTS.USDC as `0x${string}`,
         abi: ERC20_ABI,
         functionName: 'balanceOf',
         args: [address],
@@ -429,11 +429,11 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
       await new Promise((resolve) => setTimeout(resolve, 2000)); // Let animation play
 
       const approveTx = await walletClient.writeContract({
-        address: CONTRACTS.MOCK_USDC as `0x${string}`,
+        address: CONTRACTS.USDC as `0x${string}`,
         abi: ERC20_ABI,
         functionName: 'approve',
         args: [CONTRACTS.BELIEF_STAKE as `0x${string}`, STAKE_AMOUNT],
-        chain: baseSepolia,
+        chain: base,
       });
 
       console.log('[Stake] Approve transaction hash:', approveTx, 'length:', approveTx.length);
@@ -455,7 +455,7 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
         abi: BELIEF_STAKE_WRITE_ABI,
         functionName: 'stake',
         args: [attestationUID as `0x${string}`],
-        chain: baseSepolia,
+        chain: base,
       });
 
       console.log('[Stake] Transaction hash:', stakeTx, 'length:', stakeTx.length);
@@ -506,9 +506,9 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
 
   async function handleUnstake(attestationUID: string) {
     if (!walletClient) {
-      if (!chain || chain.id !== baseSepolia.id) {
-        switchChain({ chainId: baseSepolia.id });
-        setStatus('⚠️ Switching to Base Sepolia — please try again.');
+      if (!chain || chain.id !== base.id) {
+        switchChain({ chainId: base.id });
+        setStatus('⚠️ Switching to Base — please try again.');
       } else {
         setStatus('⚠️ Wallet is connecting, please try again in a moment.');
       }
@@ -537,7 +537,7 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
         abi: BELIEF_STAKE_WRITE_ABI,
         functionName: 'unstake',
         args: [attestationUID as `0x${string}`],
-        chain: baseSepolia,
+        chain: base,
       });
 
       console.log('[Unstake] Transaction hash:', unstakeTx, 'length:', unstakeTx.length);
@@ -596,9 +596,9 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
       return;
     }
     if (!walletClient) {
-      if (!chain || chain.id !== baseSepolia.id) {
-        switchChain({ chainId: baseSepolia.id });
-        setStatus('⚠️ Switching to Base Sepolia — please try again.');
+      if (!chain || chain.id !== base.id) {
+        switchChain({ chainId: base.id });
+        setStatus('⚠️ Switching to Base — please try again.');
       } else {
         setStatus('⚠️ Wallet is connecting, please try again in a moment.');
       }
@@ -618,7 +618,7 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
     try {
       // Check USDC balance first
       const balance = await publicClient.readContract({
-        address: CONTRACTS.MOCK_USDC as `0x${string}`,
+        address: CONTRACTS.USDC as `0x${string}`,
         abi: ERC20_ABI,
         functionName: 'balanceOf',
         args: [address],
@@ -660,7 +660,7 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
             },
           },
         ],
-        chain: baseSepolia,
+        chain: base,
       });
 
       console.log('[Create] Attest transaction hash:', attestTx, 'length:', attestTx.length);
@@ -693,11 +693,11 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
       setProgressMessage('Approving USDC (TX 2 of 3)...');
 
       const approveTx = await walletClient.writeContract({
-        address: CONTRACTS.MOCK_USDC as `0x${string}`,
+        address: CONTRACTS.USDC as `0x${string}`,
         abi: ERC20_ABI,
         functionName: 'approve',
         args: [CONTRACTS.BELIEF_STAKE as `0x${string}`, STAKE_AMOUNT],
-        chain: baseSepolia,
+        chain: base,
       });
 
       console.log('[Create] Approve transaction hash:', approveTx, 'length:', approveTx.length);
@@ -723,7 +723,7 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
         abi: BELIEF_STAKE_WRITE_ABI,
         functionName: 'stake',
         args: [attestationUID],
-        chain: baseSepolia,
+        chain: base,
       });
 
       console.log('[Create+Stake] Stake transaction hash:', stakeTx, 'length:', stakeTx.length);
@@ -808,7 +808,7 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
                 <section className="faucet-modal">
                   <h1 className="headline">Free Fake<br />Money</h1>
                   
-                  <p className="content">You need two things to test Believeth on Base Sepolia testnet: fake ETH and fake USDC.</p>
+                  <p className="content">You need two things to test Extracredible on Base testnet: fake ETH and fake USDC.</p>
                   
                   <div className="faucet-section">
                     <p className="content">Base Sepolia ETH pays for gas fees. You need about 0.0005 ETH per belief (three transactions: approve, attest, stake). This should be enough for about 10.</p>
@@ -823,7 +823,7 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
                         : faucetTxHash.eth 
                         ? (
                           <a 
-                            href={`https://sepolia.basescan.org/tx/${faucetTxHash.eth}`} 
+                            href={`https://basescan.org/tx/${faucetTxHash.eth}`} 
                             target="_blank" 
                             rel="noopener noreferrer"
                             style={{ color: 'inherit', textDecoration: 'none' }}
@@ -849,7 +849,7 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
                         : faucetTxHash.usdc 
                         ? (
                           <a 
-                            href={`https://sepolia.basescan.org/tx/${faucetTxHash.usdc}`} 
+                            href={`https://basescan.org/tx/${faucetTxHash.usdc}`} 
                             target="_blank" 
                             rel="noopener noreferrer"
                             style={{ color: 'inherit', textDecoration: 'none' }}
@@ -867,7 +867,7 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
                       To see this fake USDC in your wallet, add this custom token {contractAddressCopied ? '(Copied!)' : '(click to copy)'}:
                       <br />
                       <span className="contract-address" onClick={handleCopyContractAddress}>
-                        {CONTRACTS.MOCK_USDC}
+                        {CONTRACTS.USDC}
                       </span>
                     </p>
                     <p className="content">In MetaMask: Assets → Import Tokens → Custom Token. Symbol: USDC, Decimals: 6</p>
@@ -1072,7 +1072,7 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
                                         <>
                                           {' '}
                                           <a
-                                            href={`https://base-sepolia.easscan.org/attestation/view/${beliefItem.id}`}
+                                            href={`https://base.easscan.org/attestation/view/${beliefItem.id}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="created-link"
@@ -1085,7 +1085,7 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
                                     <span className="stake-tx">
                                       TX{' '}
                                       <a
-                                        href={`https://sepolia.basescan.org/tx/${stake.transactionHash}`}
+                                        href={`https://basescan.org/tx/${stake.transactionHash}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                       >

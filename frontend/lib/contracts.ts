@@ -2,11 +2,11 @@ export const CONTRACTS = {
   EAS_REGISTRY: '0x4200000000000000000000000000000000000021',
   BELIEF_SCHEMA_UID:
     '0x21f7fcf4af0c022d3e7316b6a5b9a04dcaedac59eaea803251e653abd1db9fd6',
-  MOCK_USDC: '0xA5c82FCFBe1274166D01B1f3cd9f69Eb79bd74E8',
-  BELIEF_STAKE: '0xa37c9A89375134374a866EeD3E57EAF2789d9613',
+  USDC: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+  BELIEF_STAKE: '0xaff45F0Fc8AF91B9D3A317d550307Efe0FFb7956',
 } as const;
 
-export const BASE_SEPOLIA_RPC = 'https://sepolia.base.org';
+export const BASE_RPC = 'https://mainnet.base.org';
 
 // BeliefStake ABI - read functions
 export const BELIEF_STAKE_ABI = [

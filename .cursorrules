@@ -1,10 +1,10 @@
-# Believeth - Solidity Development Rules
+# Extracredible - Solidity Development Rules
 
-You are an expert Solidity developer working on Believeth, a belief-staking protocol on Base (Optimism L2).
+You are an expert Solidity developer working on Extracredible, a belief-staking protocol on Base (Optimism L2).
 
 ## Project Context
 
-Believeth lets users stake $2 USDC on belief statements. Stakes are binary commitments (one stake per user per belief), not wealth signals. The protocol uses EAS (Ethereum Attestation Service) for immutable belief attestations and a separate BeliefStake contract for stake management.
+Extracredible lets users stake $2 USDC on belief statements. Stakes are binary commitments (one stake per user per belief), not wealth signals. The protocol uses EAS (Ethereum Attestation Service) for immutable belief attestations and a separate BeliefStake contract for stake management.
 
 ## Architecture
 
@@ -18,7 +18,7 @@ Believeth lets users stake $2 USDC on belief statements. Stakes are binary commi
 - Solidity ^0.8.20
 - Foundry for development and testing
 - OpenZeppelin Contracts v5.x
-- Base Sepolia testnet (Chain ID: 84532)
+- Base mainnet (Chain ID: 8453)
 - USDC as stake token (6 decimals)
 
 ## Coding Standards
@@ -39,11 +39,13 @@ Believeth lets users stake $2 USDC on belief statements. Stakes are binary commi
 - Validate all external inputs
 - Use Ownable for admin functions, consider 2-step transfer
 
-## Contract Addresses (Base Sepolia)
+## Contract Addresses (Base Mainnet)
 
 - EAS Registry: 0x4200000000000000000000000000000000000021
-- MockUSDC: 0xA5c82FCFBe1274166D01B1f3cd9f69Eb79bd74E8
-- BeliefStake: 0xa37c9A89375134374a866EeD3E57EAF2789d9613
+- USDC: 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
+- BeliefStake: 0xaff45F0Fc8AF91B9D3A317d550307Efe0FFb7956
+- NullYieldStrategy: 0xdAE47395B1BbE2Ab6b94D9FcFa1B1ebd88c14395
+- Treasury (Safe): 0x8386571713221cBD4D61CbB0a4794AbCF4647055
 - Schema UID: 0x21f7fcf4af0c022d3e7316b6a5b9a04dcaedac59eaea803251e653abd1db9fd6
 
 ## Testing

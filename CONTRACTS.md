@@ -1,8 +1,8 @@
-# Believeth Contract Architecture
+# Extracredible Contract Architecture
 
 ## Overview (250 words)
 
-Believeth uses a layered contract architecture that separates concerns and enables future upgrades without user disruption.
+Extracredible uses a layered contract architecture that separates concerns and enables future upgrades without user disruption.
 
 **BeliefStake** is the core escrow contract. It receives $2 USDC stakes tied to EAS attestation UIDs, tracks per-user and per-belief totals, and emits events that The Graph indexes. The contract enforces binary stakes: one $2 commitment per user per belief. This isn't a wealth signal—it's a CAPTCHA proving real commitment. BeliefStake is deliberately simple, handling only stake accounting while delegating capital deployment elsewhere.
 

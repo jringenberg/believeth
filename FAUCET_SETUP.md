@@ -31,7 +31,7 @@ ETH_RPC_URL=https://sepolia.base.org
 ### 1. Add Keystore Password to frontend/.env
 
 ```bash
-cd /Users/jringenberg/Documents/believeth/frontend
+cd frontend
 echo "KEYSTORE_PASSWORD=your_actual_keystore_password" >> .env
 echo "ETH_RPC_URL=https://sepolia.base.org" >> .env
 ```
