@@ -7,27 +7,34 @@ pragma solidity ^0.8.20;
  *         into a yield strategy; principal always returns to users, yield goes to treasury.
  *
  * @dev Implementations:
- *      - NullYieldStrategy: Holds USDC with no yield (initial "backdoor" implementation)
+ *      - NullYieldStrategy: Holds USDC with no yield (initial implementation)
  *      - AaveYieldStrategy: Deposits to Aave V3, earns supply APY
  *      - Future: Compound, Morpho, etc.
  *
- *      Migration between strategies happens via BeliefStake.migrateYieldStrategy()
- *      which withdraws all from old strategy and deposits to new in one transaction.
+ *      Security invariants:
+ *      - Only vault (BeliefStake) can call deposit/withdraw/withdrawAll
+ *      - principal() must always be withdrawable (barring external protocol issues)
+ *      - harvestYield() must never touch principal
+ *
+ *      Migration happens via BeliefStake.migrateYieldStrategy() which:
+ *      1. Calls withdrawAll() on old strategy
+ *      2. Calls deposit() on new strategy with totalPrincipal
+ *      3. Sends any excess (yield) to treasury
  */
 interface IYieldStrategy {
     /// @notice Deposit USDC into the yield source
     /// @param amount Amount of USDC to deposit (6 decimals)
-    /// @dev Called by BeliefStake when users stake. Strategy must have USDC approval.
+    /// @dev Called by BeliefStake when users stake. Caller must have approved this contract.
     function deposit(uint256 amount) external;
 
     /// @notice Withdraw USDC from the yield source
     /// @param amount Amount of USDC to withdraw (6 decimals)
-    /// @dev Called by BeliefStake when users unstake. Returns principal only.
+    /// @dev Called by BeliefStake when users unstake. Returns principal to caller.
     function withdraw(uint256 amount) external;
 
     /// @notice Withdraw all USDC from the yield source
-    /// @return amount Total USDC withdrawn
-    /// @dev Used during strategy migration. Includes principal + any unrealized yield.
+    /// @return amount Total USDC withdrawn (principal + any unrealized yield)
+    /// @dev Used during strategy migration. Returns everything to caller.
     function withdrawAll() external returns (uint256 amount);
 
     /// @notice Get total USDC value held by this strategy (principal + yield)
