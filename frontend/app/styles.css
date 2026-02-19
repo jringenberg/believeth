@@ -268,6 +268,10 @@ ul {
   overflow: visible;
 }
 
+.col-right-inner {
+  display: contents;
+}
+
 /* Left column sticks at same height as nav buttons */
 .col-left-fixed {
   position: sticky;
@@ -670,7 +674,7 @@ ul {
   font-family: 'Times New Roman', Times, serif;
   font-size: 0.875rem;
   text-align: center;
-  padding: 0.75rem;
+  padding: 0.75rem 0.375rem;
   border-radius: 0.5rem;
   background: var(--color-gray-1);
   border: none;

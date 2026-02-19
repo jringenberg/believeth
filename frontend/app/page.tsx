@@ -438,7 +438,7 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
 
       if (balance < STAKE_AMOUNT) {
         const balanceFormatted = (Number(balance) / 1_000_000).toFixed(2);
-        setStatus(`❌ Insufficient USDC balance. You have $${balanceFormatted}, need $2.00. Click the "$" button to mint test USDC.`);
+        setStatus(`❌ Insufficient USDC balance. You have $${balanceFormatted}, need $2.00.`);
         setProgress(0);
         setProgressMessage('');
         setLoadingBeliefId(null);
@@ -447,7 +447,7 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
 
       // Step 1: Approve USDC
       setProgress(33);
-      setProgressMessage('Approving USDC...');
+      setProgressMessage('Approving USDC (TX 1 of 2)...');
       await new Promise((resolve) => setTimeout(resolve, 2000)); // Let animation play
 
       const approveTx = await walletClient.writeContract({
@@ -459,11 +459,12 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
       });
 
       const approveHash = normalizeTxHash(approveTx);
+      setProgressMessage('Confirming approval...');
       await publicClient.waitForTransactionReceipt({ hash: approveHash });
 
       // Step 2: Stake
       setProgress(66);
-      setProgressMessage('Staking $2...');
+      setProgressMessage('Staking $2 (TX 2 of 2)...');
       await new Promise((resolve) => setTimeout(resolve, 2000)); // Let animation play
 
       const stakeTx = await walletClient.writeContract({
@@ -475,6 +476,7 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
       });
 
       const stakeHash = normalizeTxHash(stakeTx);
+      setProgressMessage('Confirming stake...');
       await publicClient.waitForTransactionReceipt({ hash: stakeHash });
 
       // Update user stakes state immediately so UI updates
@@ -630,7 +632,7 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
 
       if (balance < STAKE_AMOUNT) {
         const balanceFormatted = (Number(balance) / 1_000_000).toFixed(2);
-        setStatus(`❌ Insufficient USDC balance. You have $${balanceFormatted}, need $2.00. Click the "$" button to mint test USDC.`);
+        setStatus(`❌ Insufficient USDC balance. You have $${balanceFormatted}, need $2.00.`);
         setProgress(0);
         setProgressMessage('');
         setLoading(false);
@@ -812,7 +814,7 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
                     Built on Base using Ethereum Attestation Service for immutable belief records, The Graph for indexing, and Privy for wallet connectivity — money Legos stacked together into a lightweight utility. Your deposit sits in a simple escrow contract (<a href={`https://basescan.org/address/${CONTRACTS.BELIEF_STAKE}`} target="_blank" rel="noopener noreferrer">view on Basescan</a>) and you can pull it out anytime.
                   </p>
                   <p className="content">
-                    As AI-generated content becomes indistinguishable from human expression, verified statements backed by real cost can serve as a basic layer of trust online. Extracredible explores the simplest version of what that looks like — attach 2 USDC to a public statement and suddenly it carries weight. Not because the money matters, but because the willingness to stake it does.
+                    As AI-generated content becomes indistinguishable from human expression, verified statements backed by real cost signal (even just a little) additional credibility. Extracredible explores the simplest version of what that looks like — attach 2 USDC to a public statement and suddenly it carries weight. Not because the money matters, but because the willingness to stake it does.
                   </p>
                 </section>
                 ) : !isConnected ? (
@@ -829,7 +831,7 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
                       placeholder="State your claim, belief, prediction, commitment..."
                       maxLength={550}
                     />
-                    <div className="char-counter">{belief.length}/550</div>
+                    {belief.length > 0 && <div className="char-counter">{belief.length}/550</div>}
                   </div>
 
                   <button
@@ -877,7 +879,7 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
                   disabled={loading}
                   rows={1}
                 />
-                <div className="char-counter">{belief.length}/550</div>
+                {belief.length > 0 && <div className="char-counter">{belief.length}/550</div>}
               </div>
 
               <button
@@ -907,7 +909,7 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
 
         <div className="col-right">
           {!showFaucetModal && (
-          <>
+          <div className="col-right-inner">
           <div className="col-right-header">
               <h2 className="col-title">
                 <span className="sort-controls">
@@ -1057,7 +1059,7 @@ export function HomeContent({ initialSort = 'popular', filterValue }: HomeConten
 
           {!loading && status && <p className="status">{status}</p>}
         </section>
-          </>
+          </div>
           )}
         </div>
         </div>
