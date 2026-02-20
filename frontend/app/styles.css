@@ -1,38 +1,29 @@
 /* 
   Color System
   ────────────
-  HSL-based for easy brightness manipulation and dark mode support
-  Hue/Saturation stay constant, Lightness varies for hierarchy
+  Grays & accent blue in HSL; yellow scale as hex for warmth.
+  --yellow-{30,60,90}: light → saturated accent yellow.
 */
 
 :root {
   /* Base Colors */
   --color-black: hsl(0, 0%, 0%);
   --color-white: hsl(0, 0%, 100%);
-  --color-gray-1: hsl(0, 0%, 96%); /* #F5F5F5 */
-  --color-gray-2: hsl(0, 0%, 95%); /* #F2F2F2 */
+  --color-gray-1: hsl(0, 0%, 96%);
+  --color-gray-2: hsl(0, 0%, 95%);
   --color-gray-disabled: hsl(0, 0%, 79%);
-  
-  /* Accent Blue - Klein Blue (International Klein Blue) */
-  --accent-hue: 223;
-  --accent-sat: 100%;
-  
-  --color-accent: hsl(var(--accent-hue), var(--accent-sat), 33%);
-  --color-accent-hover: hsl(var(--accent-hue), var(--accent-sat), 28%);
-  
-  /* Numbered shades (1 = lightest, 5 = darkest) */
-  --color-accent-1: hsl(var(--accent-hue), 15%, 96%); /* Page background */
-  --color-accent-2: hsl(0, 0%, 94%); /* Textarea default - light gray */
-  --color-accent-3: hsl(0, 0%, 90%); /* Textarea active - slightly darker gray */
-  --color-accent-4: hsl(var(--accent-hue), var(--accent-sat), 45%); /* Light accent */
-  --color-accent-5: hsl(var(--accent-hue), var(--accent-sat), 15%); /* Dark accent */
-  
-  /* UI Colors */
-  --color-bg-button: hsl(48, 100%, 97%); /* Light yellow #FFFBEA */
-  --color-bg-button-shadow: hsl(48, 100%, 87%); /* Inner shadow #FFF1BA */
+
+  /* Accent Blue — Klein Blue */
+  --color-accent: hsl(223, 100%, 33%);
+
+  /* Accent Yellow — warm highlight scale (higher = more saturated) */
+  --yellow-30: #ffffe0;  /* Lightest: button hover */
+  --yellow-60: #ffffc7;  /* Medium: input focus */
+  --yellow-90: #fef9c3;  /* Strongest: link / interactive hover */
+
+  /* Semantic tokens */
+  --color-accent-2: hsl(0, 0%, 94%); /* Textarea default */
   --color-text-primary: var(--color-black);
-  --color-border: var(--color-black);
-  --color-emergency: #ff4444; /* Red - emergency disconnect */
 
   /* Yellow highlight: padding for more visible highlight; negative margin keeps typography unchanged */
   --highlight-pad: 0.12em;
@@ -42,10 +33,7 @@
 /* Dark mode (future) */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-accent-1: hsl(0, 0%, 10%);
     --color-text-primary: hsl(0, 0%, 95%);
-    --color-border: hsl(0, 0%, 80%);
-    /* Accent blues stay same hue/sat, just invert lightness if needed */
   }
 }
 
@@ -98,7 +86,7 @@ a {
 }
 
 a:hover {
-  background: #fef9c3;
+  background: var(--yellow-90);
 }
 
 /* Headlines */
@@ -444,26 +432,6 @@ ul {
 }
 
 
-.emergency-disconnect {
-  width: 2.625rem;
-  height: 2.625rem;
-  background: var(--color-emergency);
-  color: var(--color-white);
-  font-size: 1.2rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 1.125rem;
-  cursor: pointer;
-  transition: opacity 0.2s;
-  border: none;
-  margin-left: 0.5rem;
-}
-
-.emergency-disconnect:hover {
-  opacity: 0.8;
-}
-
 .main {
   margin-top: 0;
   margin-bottom: 5rem;
@@ -519,7 +487,7 @@ ul {
 
 .belief-textarea:focus {
   outline: none;
-  background: var(--color-accent-3);
+  background: var(--yellow-60);
 }
 
 .belief-textarea::placeholder {
@@ -534,82 +502,6 @@ ul {
   opacity: 0.6;
   cursor: not-allowed;
 }
-
-/* Buttons */
-.btn {
-  display: block;
-  width: 100%;
-  padding: 0.7rem 1rem;
-  font-family: Helvetica, Arial, sans-serif;
-  font-size: 0.9rem;
-  font-weight: normal;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border: 1px solid var(--color-accent);
-  border-radius: 1.125rem;
-  background: transparent;
-  color: var(--color-accent);
-  cursor: pointer;
-  transition: background 0.2s, opacity 0.2s;
-}
-
-.btn:not(:disabled):hover {
-  background: var(--color-gray-1);
-}
-
-.btn-primary {
-  /* Same as base .btn - accent color outline */
-}
-
-.btn-disabled-style {
-  cursor: pointer;
-  box-shadow: none !important;
-  color: hsl(0, 0%, 45%);
-  border-color: var(--color-gray-disabled);
-}
-
-.btn-outline {
-  background: transparent;
-  border: 1px solid var(--color-text-primary);
-  color: var(--color-text-primary);
-  box-shadow: none;
-}
-
-.btn-outline:hover:not(:disabled) {
-  opacity: 0.7;
-}
-
-.btn-outline:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-/* Small button — reusable compact pill */
-.btn-sm {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  height: 1.5rem;
-  padding: 0 0.5rem;
-  font-family: Helvetica, Arial, sans-serif;
-  font-size: 0.9rem;
-  font-weight: normal;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border: 1px solid var(--color-black);
-  border-radius: 0.75rem;
-  background: transparent;
-  color: var(--color-black);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.2s, opacity 0.2s;
-}
-
-.btn-sm:not(:disabled):hover {
-  background: var(--color-gray-1);
-}
-
-/* Stake button styles defined in belief card section below */
 
 /* Hero / Compose Info */
 .hero-info,
@@ -642,7 +534,7 @@ ul {
 }
 
 .btn-cta:not(:disabled):hover {
-  background: var(--color-gray-1);
+  background: var(--yellow-30);
 }
 
 .btn-cta:disabled {
@@ -665,7 +557,7 @@ ul {
 
 /* Sort trigger is visual only; select overlays; hover on parent for feedback */
 .sort-controls:hover .sort-trigger.btn-cta {
-  background: var(--color-gray-1);
+  background: var(--yellow-30);
 }
 
 /* Status and Progress */
@@ -868,7 +760,7 @@ ul {
 }
 
 .belief-detail-link:hover:not(:disabled) {
-  background: #fef9c3;
+  background: var(--yellow-90);
 }
 
 .belief-detail-link:disabled {
@@ -920,25 +812,13 @@ ul {
 }
 
 .belief-stake-row .stake-time a:hover {
-  background: #fef9c3;
+  background: var(--yellow-90);
 }
 
 /* Wide: details to the right — don't crop address */
 .belief-stake-row .stake-address {
   flex: 0 1 auto;
   min-width: 0;
-}
-
-.created-link {
-  color: var(--color-accent);
-  text-decoration: none;
-  transition: background 0.2s ease;
-  padding: var(--highlight-pad) var(--highlight-pad-inline);
-  margin: calc(-1 * var(--highlight-pad)) calc(-1 * var(--highlight-pad-inline));
-}
-
-.created-link:hover {
-  background: #fef9c3;
 }
 
 .belief-stake-row .stake-tx a {
@@ -950,7 +830,7 @@ ul {
 }
 
 .belief-stake-row .stake-tx a:hover {
-  background: #fef9c3;
+  background: var(--yellow-90);
 }
 
 .belief-progress {
@@ -1044,108 +924,7 @@ body.faucet-active .btn-cta {
   border-color: var(--color-white) !important;
 }
 
-body.faucet-active .btn-outline {
-  border-color: var(--color-white);
-  color: var(--color-white);
-}
-
-.faucet-modal {
-  width: 100%;
-}
-
-.faucet-modal .content {
-  margin-bottom: 1rem;
-}
-
-.faucet-section {
-  margin-bottom: 2rem;
-}
-
-.faucet-section button {
-  margin-top: 1rem;
-}
-
-.contract-address {
-  background: var(--color-white);
-  color: var(--color-black);
-  padding: 0.125rem 0.25rem;
-  font-family: 'Courier New', monospace;
-  cursor: pointer;
-  word-break: break-all;
-}
-
-.contract-address:hover {
-  opacity: 0.8;
-}
-
-body.faucet-active .status {
-  background: hsl(0, 0%, 20%);
-  color: var(--color-white);
-  border: none;
-}
-
-.contract-address {
-  font-family: 'Times New Roman', Times, serif;
-  font-size: calc(1.5rem - 1px);
-  color: var(--color-accent-4);
-  cursor: pointer;
-  background: none;
-  text-decoration: none;
-}
-
-.contract-address:hover {
-  opacity: 0.7;
-}
-
-.disconnect-link {
-  color: var(--color-accent);
-  text-decoration: none;
-  cursor: pointer;
-  transition: background 0.2s ease;
-  padding: var(--highlight-pad) var(--highlight-pad-inline);
-  margin: calc(-1 * var(--highlight-pad)) calc(-1 * var(--highlight-pad-inline));
-}
-
-.disconnect-link:hover {
-  background: #fef9c3;
-}
-
-body.faucet-active .disconnect-link {
-  color: var(--color-accent-4);
-}
-
-/* Responsive */
-
-@media (max-width: 30rem) {
-  .hero-title,
-  .compose-title {
-    font-size: 1.25rem;
-    line-height: 1.5rem;
-  }
-
-  .btn-stake {
-    padding: 0 0.75rem;
-  }
-
-  .stakes-table td {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.8rem;
-  }
-
-  .stakes-table .stake-amount {
-    width: 2rem;
-    min-width: 2rem;
-    max-width: 2rem;
-    font-size: 0.75rem;
-    font-weight: normal;
-  }
-
-  .stakes-table tbody tr {
-    height: 2rem;
-  }
-}
-
-/* ===========================================
+/* =========================================== 
    DETAIL PAGES - Belief & Account
    =========================================== */
 
@@ -1255,7 +1034,7 @@ body.faucet-active .disconnect-link {
 }
 
 .address-link:hover {
-  background: #fef9c3;
+  background: var(--yellow-90);
 }
 
 .belief-link {

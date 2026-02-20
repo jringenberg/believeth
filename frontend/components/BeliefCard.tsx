@@ -4,9 +4,9 @@ interface BeliefCardProps {
   text: string;
 }
 
-function getTextStyle(charCount: number): { fontSize: number; lineHeight: number } {
+function getTextStyle(charCount: number): { fontSize: number; lineHeight: number; letterSpacing?: string } {
   if (charCount === 0) return { fontSize: 24, lineHeight: 1.25 };
-  if (charCount < 30) return { fontSize: 68, lineHeight: 1.05 };
+  if (charCount < 30) return { fontSize: 68, lineHeight: 1.05, letterSpacing: '0.5px' };
   if (charCount < 60) return { fontSize: 50, lineHeight: 1.1 };
   if (charCount < 100) return { fontSize: 38, lineHeight: 1.15 };
   if (charCount < 140) return { fontSize: 30, lineHeight: 1.2 };
